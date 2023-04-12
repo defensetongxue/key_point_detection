@@ -7,13 +7,18 @@ from torchvision import transforms
 from .transforms_kit import *
 
 class KeypointDetectionDatasetHeatmap(Dataset):
-    def __init__(self, data_path, transform=None, mode='train'):
+    def __init__(self, data_path, spilt='train'):
         self.data_path = data_path
-        self.transform = transform
-        self.mode = mode
+        if spilt=='train':
+            self.transform=KeypointDetectionTransformHeatmap(mode='train')
+        elif spilt=='valid' or spilt=='test':
+            self.transform=KeypointDetectionTransformHeatmap(mode='val')
+        else:
+            raise ValueError(
+                f"Invalid spilt: {spilt}, spilt should be one of train|valid|test")
 
         # Load annotations
-        self.annotations = json.load(open(os.path.join(data_path, 'annotations', f"{mode}.json")))
+        self.annotations = json.load(open(os.path.join(data_path, 'annotations', f"{spilt}.json")))
 
     def __len__(self):
         return len(self.annotations)
@@ -23,15 +28,21 @@ class KeypointDetectionDatasetHeatmap(Dataset):
 
         img_path = os.path.join(self.data_path, 'images', f"{annotation['image_id']}.png")
         img = Image.open(img_path).convert('RGB')
-        keypoints = annotation['keypoints']
 
-        if self.transform:
-            img, heatmap = self.transform(img, keypoints)
+        if annotation['num_keypoints'] == 0:
+            keypoints = torch.zeros(1, 2)  # Placeholder values, since there's no keypoint.
+            presence = torch.tensor([[0]])  # Ground truth for keypoint presence (0 for no keypoint).
+        
         else:
-            image_width, image_height = img.size
-            heatmap = create_heatmap_label(keypoints, image_width,image_height)
+            keypoints = torch.tensor(annotation['keypoints'], dtype=torch.float32).view(-1, 3)
+            keypoints = keypoints[:, :2].flatten()
+            presence = torch.ones((1,1)).flatten()
 
-        return img, heatmap
+        img, labels = self.transform(img, keypoints)
+        # image_width, image_height = img.size
+        # labels = create_heatmap_label(keypoints, image_width,image_height)
+
+        return img, labels, presence
 
 
 class KeypointDetectionTransformHeatmap:

@@ -1,5 +1,5 @@
 import torch
-from visual_kit import visualize_result
+from .visual_kit import visualize_result
 
 def train_epoch(model, optimizer, train_loader, loss_function, device):
     model.train()
@@ -36,15 +36,3 @@ def val_epoch(model, val_loader, loss_function, device):
             running_loss += loss.item()
 
     return running_loss / len(val_loader)
-
-def test_epoch(model, test_loader,target_path, device):
-    model.eval()
-    with torch.no_grad():
-        for inputs, targets in test_loader:
-            inputs = inputs.to(device)
-
-            outputs = model(inputs)
-            visualize_result(inputs,outputs,targets,
-                             target_path,model.output_format)
-    print("finish testing")
-    return 

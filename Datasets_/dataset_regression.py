@@ -6,13 +6,17 @@ import json
 import os
 
 class KeypointDetectionDatasetRegression(Dataset):
-    def __init__(self, data_path, mode='train', transform=None):
+    def __init__(self, data_path, spilt='train'):
         self.data_path = data_path
-        self.transform = transform
-        self.mode = mode
-
+        if spilt=='train':
+            self.transform=KeypointDetectionTransformRegression(mode='train')
+        elif spilt=='valid' or spilt=='test':
+            self.transform=KeypointDetectionTransformRegression(mode='val')
+        else:
+            raise ValueError(
+                f"Invalid spilt: {spilt}, spilt should be one of train|valid|test")
         # Load annotations
-        with open(os.path.join(data_path, 'annotations', f'{mode}.json'), 'r') as f:
+        with open(os.path.join(data_path, 'annotations', f'{spilt}.json'), 'r') as f:
             self.annotations = json.load(f)
 
     def __len__(self):
@@ -23,17 +27,23 @@ class KeypointDetectionDatasetRegression(Dataset):
 
         img_path = os.path.join(self.data_path, 'images', f"{annotation['image_id']}.png")
         img = Image.open(img_path).convert('RGB')
-        keypoints = annotation['keypoints']
 
-        if self.transform:
-            img, labels = self.transform(img, keypoints)
+        if annotation['num_keypoints'] == 0:
+            keypoints = torch.zeros(1, 2)  # Placeholder values, since there's no keypoint.
+            presence = torch.tensor([[0]])  # Ground truth for keypoint presence (0 for no keypoint).
+        
         else:
-            image_width, image_height = img.size
-            labels = create_regression_label(keypoints, image_width,image_height)
+            keypoints = torch.tensor(annotation['keypoints'], dtype=torch.float32).view(-1, 3)
+            keypoints = keypoints[:, :2].flatten()
+            presence = torch.ones((1,1)).flatten()
 
-        return img, labels
+        img, labels = self.transform(img, keypoints)
+        # image_width, image_height = img.size
+        # labels = create_regression_label(keypoints, image_width,image_height)
 
-class KeypointDetectionTransformHeatmap:
+        return img, labels, presence
+
+class KeypointDetectionTransformRegression:
     def __init__(self, mean=[0.4623, 0.3856, 0.2822],
                  std=[0.2527, 0.1889, 0.1334],
                  size=(416, 416),
