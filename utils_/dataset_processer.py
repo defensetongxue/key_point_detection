@@ -219,3 +219,40 @@ class ODVOC_DB(BaseDB):
         self.process_split(train_split, 'train')
         self.process_split(val_split, 'valid')
         self.process_split(test_split, 'test')
+
+import os
+import json
+from PIL import Image
+
+class GY_DB:
+    def __init__(self, data_path, target_path):
+        self.data_path = data_path
+        self.target_path = target_path
+
+        if not os.path.exists(os.path.join(target_path, 'images')):
+            os.makedirs(os.path.join(target_path, 'images'))
+        if not os.path.exists(os.path.join(target_path, 'annotations')):
+            os.makedirs(os.path.join(target_path, 'annotations'))
+
+    def process(self):
+        image_files = [f for f in os.listdir(os.path.join(self.data_path, 'images')) if f.endswith('.jpg')]
+
+        for img_name in image_files:
+            img_id = int(os.path.splitext(img_name)[0])
+            img_path = os.path.join(self.data_path, 'images', img_name)
+            label_path = os.path.join(self.data_path, 'labels', f"{img_id}.txt")
+
+            img = Image.open(img_path)
+            width, height = img.size
+
+            coco_annotations = []
+            with open(label_path, 'r') as f:
+                for line in f.readlines():
+                    cls, x, y, w, h = map(float, line.strip().split(' '))
+                    x_center, y_center = int(x * width), int(y * height)
+                    coco_annotations.append(create_coco_annotation(img_id, len(coco_annotations), x_center, y_center))
+
+            with open(os.path.join(self.target_path, 'annotations', f"{img_id}.json"), 'w') as f:
+                json.dump(coco_annotations, f)
+
+            img.save(os.path.join(self.target_path, 'images', f"{img_id}.png"))
