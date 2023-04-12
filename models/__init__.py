@@ -1,0 +1,1 @@
+from .resnet18_regression import build_resnet18_regression as resnet18_regression

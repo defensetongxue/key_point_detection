@@ -1,5 +1,6 @@
 import torch
 from visual_kit import visualize_result
+
 def train_epoch(model, optimizer, train_loader, loss_function, device):
     model.train()
     running_loss = 0.0

@@ -22,11 +22,14 @@ def visualize_result(image_tensor, result,
     # Convert image to numpy array
     
     img_np = tensor_to_numpy_image(image_tensor)
-
+    img_width,img_height,_=img_np.shape
+    print(img_width,img_height)
+    assert img_width>5 and img_height>5
     # Draw ground truth points
     for gt_point in ground_truth:
         if ouput_format == 'regression':
             x, y = gt_point
+            x, y = int(x * img_width), int(y * img_height)
         elif ouput_format == 'heatmap':
             y, x = np.unravel_index(np.argmax(gt_point), gt_point.shape)
         else:
@@ -39,6 +42,7 @@ def visualize_result(image_tensor, result,
     for pred_point in result:
         if ouput_format == 'regression':
             x, y = pred_point
+            x, y = int(x * img_width), int(y * img_height)
         elif ouput_format == 'heatmap':
             y, x = np.unravel_index(np.argmax(pred_point), pred_point.shape)
         else:
