@@ -1,4 +1,6 @@
 import numpy as np
+import inspect
+
 
 def contour_to_bbox(file_name):
     """
@@ -19,3 +21,12 @@ def contour_to_bbox(file_name):
     width, height = x_max - x_min, y_max - y_min
 
     return x_center, y_center, width, height
+
+def get_instance(module, class_name, *args, **kwargs):
+    try:
+        cls = getattr(module, class_name)
+        instance = cls(*args, **kwargs)
+        return instance
+    except AttributeError:
+        available_classes = [name for name, obj in inspect.getmembers(module, inspect.isclass) if obj.__module__ == module.__name__]
+        raise ValueError(f"{class_name} not found in the given module. Available classes: {', '.join(available_classes)}")
