@@ -5,6 +5,9 @@ from .utils_ import contour_to_bbox
 import glob
 import xml.etree.ElementTree as ET
 import shutil
+import os
+import json
+from PIL import Image
 
 def xyxy2xywh(xmin, ymin, xmax, ymax):
     width = xmax - xmin
@@ -220,9 +223,6 @@ class ODVOC_DB(BaseDB):
         self.process_split(val_split, 'valid')
         self.process_split(test_split, 'test')
 
-import os
-import json
-from PIL import Image
 
 class GY_DB:
     def __init__(self, data_path, target_path):
