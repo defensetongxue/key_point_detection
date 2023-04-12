@@ -1,16 +1,22 @@
 import torch
 from torch.utils.data import DataLoader
 from config import get_config
-from utils_ import get_instance,train_epoch,val_epoch
+from utils_ import get_instance, train_epoch, val_epoch
 from Datasets_ import get_keypoint_dataset
 from torch import optim
-from torch.nn import MSELoss
 import models
+import os
 # Parse arguments
 args = get_config()
 
+# Init the result file to store the pytorch model and other mid-result
+result_path = args.result_path
+if not os.path.exists(result_path):
+    os.mkdir(result_path)
+print(f"the mid-result and the pytorch model will be stored in {result_path}")
+
 # Create the model and criterion
-model,criterion = get_instance(models, args.model)
+model, criterion = get_instance(models, args.model)
 output_format = model.output_format
 
 # Load the datasets
@@ -18,15 +24,18 @@ train_dataset = get_keypoint_dataset(args.path_tar, "train", output_format)
 val_dataset = get_keypoint_dataset(args.path_tar, "valid", output_format)
 
 # Create the data loaders
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
-val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=4)
+train_loader = DataLoader(train_dataset, batch_size=args.batch_size,
+                          shuffle=True, num_workers=args.num_workers)
+val_loader = DataLoader(val_dataset, batch_size=args.batch_size,
+                        shuffle=False, num_workers=args.num_workers)
 
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 print(f"using {device} for training")
 # Set up the optimizer, loss function, and early stopping
-optimizer = get_instance(optim, args.optimizer_type, model.parameters(), lr=args.lr)
+optimizer = get_instance(optim, args.optimizer_type,
+                         model.parameters(), lr=args.lr)
 
 early_stop_counter = 0
 best_val_loss = float('inf')
