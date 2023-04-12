@@ -4,7 +4,8 @@ import pandas as pd
 from .utils_ import contour_to_bbox
 import glob
 import xml.etree.ElementTree as ET
-from PIL import Image
+import shutil
+
 def xyxy2xywh(xmin, ymin, xmax, ymax):
     width = xmax - xmin
     height = ymax - ymin
@@ -19,9 +20,11 @@ def create_coco_annotation(image_id, annotation_id, x_center, y_center):
         "category_id": 1,
         "segmentation": [],
         "area": 0,
-        "bbox": [x_center, y_center, 0, 0],
+        "bbox": [x_center, y_center,2],
         "iscrowd": 0
     }
+    return annotation
+
 class BaseDB:
     def __init__(self, data_path, target_path):
         self.data_path = data_path
@@ -55,21 +58,13 @@ class DRIONS_DB(BaseDB):
         coco_annotations = []
 
         for idx, split_number in enumerate(split):
-            image_path = os.path.join(image_file, f"image_{split_number}.jpg")
             annotation = contour_to_bbox(os.path.join(annotation_file, f"anotExpert1_{split_number}.txt"))
-
-            # Load the image and find its dimensions
-            image = Image.open(image_path)
-            width, height = image.size
-
-            # Normalize the bounding box coordinates and dimensions
-            x_center, y_center, bbox_width, bbox_height = annotation
-            x_center /= width
-            y_center /= height
-            bbox_width /= width
-            bbox_height /= height
-
+            x_center, y_center, _, _ = annotation
             coco_annotations.append(create_coco_annotation(int(split_number), idx, x_center, y_center))
+
+            # Copy the original image to target_path/images
+            shutil.copy(os.path.join(image_file, f"{split_number}.jpg"),
+                        os.path.join(self.target_path, 'images', f"{idx}.jpg"))
 
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
             json.dump(coco_annotations, f)
@@ -93,7 +88,6 @@ class HRF_DB(BaseDB):
         ├── 02_dr.JPG
         ├── ... '''
     def process_split(self, split, split_name):
-        # Read the 'annotation.xls' file
         annotations = pd.read_excel(os.path.join(self.data_path, 'annotation.xls'), engine='openpyxl')
 
         coco_annotations = []
@@ -103,16 +97,14 @@ class HRF_DB(BaseDB):
                 continue
 
             image_name = row['image']
-            image_path = os.path.join(self.data_path, 'images', f"{image_name}.jpg")
-
-            image = Image.open(image_path)
-            width, height = image.size
-
-            # Extract the optic disc center coordinates
-            center_x = row['Pap. Center x']/width
-            center_y = row['Pap. Center y']/height
+            center_x = row['Pap. Center x']
+            center_y = row['Pap. Center y']
 
             coco_annotations.append(create_coco_annotation(int(image_name), idx, center_x, center_y))
+
+            # Copy the original image to target_path/images
+            shutil.copy(os.path.join(self.data_path, 'images', f"{image_name}.jpg"),
+                        os.path.join(self.target_path, 'images', f"{idx}.jpg"))
 
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
             json.dump(coco_annotations, f)
@@ -144,26 +136,20 @@ class STARE_DB(BaseDB):
         │
         └── annotation.txt'''
     def process_split(self, split, split_name):
-        with open(os.path.join(self.data_path, 'annotation.txt'), 'r') as f:
-            coco_annotations = []
+        coco_annotations = []
 
-            for idx, line in enumerate(f):
-                image_name, center_x, center_y = line.strip().split()
+        for idx, xml_file in enumerate(split):
+            filename, xmin, ymin, xmax, ymax = self.parse_xml(xml_file)
+            x_center, y_center, _,_ = xyxy2xywh(xmin, ymin, xmax, ymax)
 
-                if int(image_name[2:]) not in split:
-                    continue
-                
-                image_path = os.path.join(self.data_path, 'image', f"{image_name}.ppm")
-                image = Image.open(image_path)
-                width, height = image.size
-                center_x /= width
-                center_y /= height
+            coco_annotations.append(create_coco_annotation(int(filename), idx, x_center, y_center))
 
-                coco_annotations.append(create_coco_annotation(int(image_name[2:]), idx, center_x, center_y))
+            # Copy the original image to target_path/images
+            shutil.copy(os.path.join(self.data_path, 'images', f"{filename}.jpg"),
+                        os.path.join(self.target_path, 'images', f"{idx}.jpg"))
 
-            with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
-                json.dump(coco_annotations, f)
-
+        with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
+            json.dump(coco_annotations, f)
 
     def parse(self):
         total_images = 319
@@ -206,16 +192,10 @@ class ODVOC_DB(BaseDB):
 
         for idx, xml_file in enumerate(split):
             filename, xmin, ymin, xmax, ymax = self.parse_xml(xml_file)
+            x_center, y_center, _,_ = xyxy2xywh(xmin, ymin, xmax, ymax)
 
-            image_path = os.path.join(self.data_path, 'images', f"{filename}.png")
-            image = Image.open(image_path)
-            width, height = image.size
-            x_center, y_center, bbox_width, bbox_height = xyxy2xywh(xmin, ymin, xmax, ymax)
-            x_center /= width
-            y_center /= height
-            bbox_width /= width
-            bbox_height /= height
-
+            shutil.copy(os.path.join(self.data_path, 'images', f"{filename}.jpg"),
+                        os.path.join(self.target_path, 'images', f"{idx}.jpg"))
             coco_annotations.append(create_coco_annotation(int(filename), idx, x_center, y_center))
 
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:

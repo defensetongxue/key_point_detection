@@ -1,25 +1,6 @@
 import torch
 from PIL import Image, ImageEnhance
 from torchvision.transforms import functional as F
-from torchvision.transforms import  Normalize, ToTensor
-
-class KeypointDetectionTransformHeatmap:
-    def __init__(self, mean=[0.4623, 0.3856, 0.2822], std=[0.2527, 0.1889, 0.1334], resize=(416, 416), num_keypoints=17, heatmap_size=(104, 104)):
-        self.mean = mean
-        self.std = std
-        self.resize = Resize(resize)
-        self.heatmap_size = heatmap_size
-        self.num_keypoints = num_keypoints
-
-    def __call__(self, img, heatmap):
-        img, heatmap = self.resize(img, heatmap)
-        img, heatmap = Fix_RandomRotation()(img, heatmap)
-        img, heatmap = RandomHorizontalFlip()(img, heatmap)
-        img, heatmap = RandomVerticalFlip()(img, heatmap)
-        img = ContrastEnhancement()(img)
-        img = ToTensor()(img)
-        img = Normalize(self.mean, self.std)(img)
-        return img, heatmap
 
 class Resize:
     def __init__(self, size):
