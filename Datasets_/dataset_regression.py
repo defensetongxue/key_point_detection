@@ -25,13 +25,13 @@ class KeypointDetectionDatasetRegression(Dataset):
     def __getitem__(self, idx):
         annotation = self.annotations[idx]
 
-        img_path = os.path.join(self.data_path, 'images', f"{annotation['image_id']}.png")
+        img_path = os.path.join(self.data_path, 'images', f"{annotation['image_name']}")
         img = Image.open(img_path).convert('RGB')
 
         if annotation['num_keypoints'] == 0:
-            keypoints = torch.zeros(1, 2)  # Placeholder values, since there's no keypoint.
-            presence = torch.tensor([[0]])  # Ground truth for keypoint presence (0 for no keypoint).
-        
+            keypoints = torch.zeros(1, 2).flatten()  # Placeholder values, since there's no keypoint.
+            presence = torch.tensor([[0]]).flatten()   # Ground truth for keypoint presence (0 for no keypoint).
+
         else:
             keypoints = torch.tensor(annotation['keypoints'], dtype=torch.float32).view(-1, 3)
             keypoints = keypoints[:, :2].flatten()
@@ -52,33 +52,32 @@ class KeypointDetectionTransformRegression:
         self.mode = mode
 
         if self.mode == 'train':
-            self.transforms = transforms.Compose([
+            self.transforms = transformsCompose([
                 ContrastEnhancement(factor=1.5),
                 Resize(size),
                 Fix_RandomRotation(),
                 RandomHorizontalFlip(),
                 RandomVerticalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std)
+                ToTensor(),
+                Normalize(mean, std)
             ])
         else:
-            self.transforms = transforms.Compose([
+            self.transforms = transformsCompose([
                 ContrastEnhancement(factor=1.5),
                 Resize(size),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std)
+                ToTensor(),
+                Normalize(mean, std)
             ])
 
     def __call__(self, img, keypoints):
         img, keypoints = self.transforms(img, keypoints)
-        image_width, image_height = img.size
+        _,image_width, image_height = img.shape
         labels = create_regression_label(keypoints, image_width, image_height)
         return img, labels
     
 
-def create_regression_label(annotation, image_width, image_height):
-    keypoints = np.array(annotation['keypoints'], dtype=np.float32)
-    keypoints[:, 0] /= image_width
-    keypoints[:, 1] /= image_height
-
+def create_regression_label(keypoints, image_width, image_height):
+    keypoints=torch.tensor([keypoints[0]/image_width,keypoints[1]/image_height])
     return keypoints
+
+# standard of ROP

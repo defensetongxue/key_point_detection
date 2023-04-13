@@ -16,15 +16,23 @@ def xyxy2xywh(xmin, ymin, xmax, ymax):
     y_center = ymin + (height / 2)
     
     return x_center, y_center, width, height
-def create_coco_annotation(image_id, annotation_id, x_center, y_center,num_keypoints):
-    annotation = {
+def create_coco_annotation(image_name, annotation_id, x_center, y_center,num_keypoints):
+    if num_keypoints!=0:
+        annotation = {
         "id": annotation_id,
-        "image_id": image_id,
+        "image_name": image_name,  
         "segmentation": [],
-        "area": 0,
         "keypoints": [x_center, y_center,1],
         "num_keypoints":num_keypoints,
-    }
+        }
+    else:
+        annotation = {
+        "id": annotation_id,
+        "image_name": image_name,  
+        "segmentation": [],
+        "keypoints": [],
+        "num_keypoints":num_keypoints,
+        }
     return annotation
 
 class BaseDB:
@@ -65,12 +73,14 @@ class DRIONS_DB(BaseDB):
         coco_annotations = []
 
         for idx, split_number in enumerate(split):
-            annotation = contour_to_bbox(os.path.join(annotation_file, f"anotExpert1_{split_number}.txt"))
+            annotation = contour_to_bbox(
+                os.path.join(annotation_file, f"anotExpert1_{split_number}.txt"))
             x_center, y_center, _, _ = annotation
-            coco_annotations.append(create_coco_annotation(int(split_number), idx, x_center, y_center))
+            coco_annotations.append(create_coco_annotation(
+                f"{idx}.jpg", idx, x_center, y_center,num_keypoints=1))
 
             # Copy the original image to target_path/images
-            shutil.copy(os.path.join(image_file, f"{split_number}.jpg"),
+            shutil.copy(os.path.join(image_file,  f"image_{split_number}.jpg"),
                         os.path.join(self.target_path, 'images', f"{idx}.jpg"))
 
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
@@ -87,15 +97,16 @@ class DRIONS_DB(BaseDB):
 
 
 class HRF_DB(BaseDB):
+    # in original data set
     '''HRF
     │
-    ├── annotations.xml
+    ├── annotations.csv
     └── images
         ├── 01_dr.JPG
         ├── 02_dr.JPG
         ├── ... '''
     def process_split(self, split, split_name):
-        annotations = pd.read_excel(os.path.join(self.data_path, 'annotation.xls'), engine='openpyxl')
+        annotations = pd.read_csv(os.path.join(self.data_path, 'annotation.csv'))
 
         coco_annotations = []
 
@@ -107,7 +118,8 @@ class HRF_DB(BaseDB):
             center_x = row['Pap. Center x']
             center_y = row['Pap. Center y']
 
-            coco_annotations.append(create_coco_annotation(int(image_name), idx, center_x, center_y))
+            coco_annotations.append(create_coco_annotation(
+                f"{idx}.jpg", idx, center_x, center_y, num_keypoints=1))
 
             # Copy the original image to target_path/images
             shutil.copy(os.path.join(self.data_path, 'images', f"{image_name}.jpg"),
@@ -115,7 +127,16 @@ class HRF_DB(BaseDB):
 
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
             json.dump(coco_annotations, f)
+
     def parse(self):
+        image_dict=os.path.join(self.data_path,'images')
+        # preprocess
+        for filename in os.listdir(image_dict):
+            if filename.endswith('.JPG'):
+                old_filepath = os.path.join(image_dict, filename)
+                new_filepath = os.path.join(image_dict, filename.lower())
+                os.rename(old_filepath, new_filepath)
+
         total_images = 45
         train_ratio = 0.7
         val_ratio = 0.2
@@ -142,23 +163,49 @@ class STARE_DB(BaseDB):
         │   └── im319.ppm
         │
         └── annotation.txt'''
-    def process_split(self, split, split_name):
+    def paser_annotation(self):
+        filename = os.path.join(self.data_path,'annotation.txt')
+
+        with open(filename, 'r') as file:
+            content = file.readlines()
+
+        image_dict = {}
+        for line in content:
+            elements = line.strip().split()
+            if len(elements)<=0:
+                continue
+            image_name = elements[0][:-4]
+            numbers = tuple(map(int, elements[1:]))
+            image_dict[image_name] = numbers
+        return image_dict
+    
+    def process_split(self, split, split_name,image_dict):
         coco_annotations = []
-
-        for idx, xml_file in enumerate(split):
-            filename, xmin, ymin, xmax, ymax = self.parse_xml(xml_file)
-            x_center, y_center, _,_ = xyxy2xywh(xmin, ymin, xmax, ymax)
-
-            coco_annotations.append(create_coco_annotation(int(filename), idx, x_center, y_center))
+        for idx, split_number in enumerate(split):
+            filename=f"im{split_number}"
+            if filename in image_dict and os.path.exists(
+                os.path.join(self.data_path, 'image', f"{filename}.ppm")):
+                x_center,y_center=image_dict[filename]
+            else:
+                continue # with no annotations
+            if x_center<0:
+                coco_annotations.append(
+                create_coco_annotation(f"{idx}.ppm", idx, 0, 0,
+                                       num_keypoints=0))
+            else:
+                coco_annotations.append(
+                create_coco_annotation(f"{idx}.ppm", idx, x_center, y_center,
+                                       num_keypoints=1))
 
             # Copy the original image to target_path/images
-            shutil.copy(os.path.join(self.data_path, 'images', f"{filename}.jpg"),
-                        os.path.join(self.target_path, 'images', f"{idx}.jpg"))
+            shutil.copy(os.path.join(self.data_path, 'image', f"{filename}.ppm"),
+                        os.path.join(self.target_path, 'images', f"{idx}.ppm"))
 
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
             json.dump(coco_annotations, f)
 
     def parse(self):
+        image_dict=self.paser_annotation()
         total_images = 319
         train_ratio = 0.7
         val_ratio = 0.2
@@ -169,13 +216,15 @@ class STARE_DB(BaseDB):
 
         indices = list(range(1, total_images + 1))
 
-        train_split = indices[:train_count]
+        train_split = indices[:]
         val_split = indices[train_count:train_count + val_count]
         test_split = indices[train_count + val_count:]
-
-        self.process_split(train_split, 'train')
-        self.process_split(val_split, 'valid')
-        self.process_split(test_split, 'test')
+        train_split=[f"{number:04}" for number in range(1,train_count)]
+        val_split = [f"{number:04}" for number in range(train_count,train_count + val_count)]
+        test_split = [f"{number:04}" for number in range(train_count + val_count,total_images+1)]
+        self.process_split(train_split, 'train',image_dict)
+        self.process_split(val_split, 'valid',image_dict)
+        self.process_split(test_split, 'test',image_dict)
 
 
 class ODVOC_DB(BaseDB):
@@ -201,9 +250,10 @@ class ODVOC_DB(BaseDB):
             filename, xmin, ymin, xmax, ymax = self.parse_xml(xml_file)
             x_center, y_center, _,_ = xyxy2xywh(xmin, ymin, xmax, ymax)
 
-            shutil.copy(os.path.join(self.data_path, 'images', f"{filename}.jpg"),
-                        os.path.join(self.target_path, 'images', f"{idx}.jpg"))
-            coco_annotations.append(create_coco_annotation(int(filename), idx, x_center, y_center))
+            shutil.copy(os.path.join(self.data_path, 'images', f"{filename[:-4]}.png"),
+                        os.path.join(self.target_path, 'images', f"{idx}.png"))
+            coco_annotations.append(
+                create_coco_annotation(f"{idx}.png", idx, x_center, y_center,num_keypoints=1))
 
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
             json.dump(coco_annotations, f)
@@ -233,26 +283,30 @@ class GY_DB(BaseDB):
         coco_annotations = []
 
         for idx, labels_file in enumerate(split):
-            img_path = os.path.join(self.data_path, 'images', labels_file[:-4])
+            file_name=labels_file[:-4]
+            img_path = os.path.join(self.data_path, 'images',f"{file_name}.jpg" )
 
             img = Image.open(img_path)
             width, height = img.size
 
             coco_annotations = []
-            with open(labels_file, 'r') as f:
-                for line in f.readlines():
-                    cls, x, y, w, h = map(float, line.strip().split(' '))
-                    x_center, y_center = int(x * width), int(y * height)
+            with open(os.path.join(self.data_path,'labels',labels_file), 'r') as f:
+                lines=f.readlines()
+                if len(lines)<=0:
                     coco_annotations.append(
-                        create_coco_annotation(labels_file[:-4], idx, x_center, y_center))
+                        create_coco_annotation(f"{idx}.jpg" , idx, x_center, y_center,0))
+                else:
+                    for line in lines:
+                        cls, x, y, w, h = map(float, line.strip().split(' '))
+                        x_center, y_center = int(x * width), int(y * height)
+                        coco_annotations.append(
+                            create_coco_annotation(f"{idx}.jpg" , idx, x_center, y_center,1))
 
-            with open(os.path.join(self.target_path, 'annotations', f"{labels_file[:-4]}.json"), 'w') as f:
+            img.save(os.path.join(self.target_path, 'images', f"{idx}.jpg" ))
+        with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
                 json.dump(coco_annotations, f)
-
-            img.save(os.path.join(self.target_path, 'images', f"{labels_file[:-4]}.jpg"))
-
     def parse(self):
-        label_files = glob.glob(os.path.join(self.data_path, 'labels', '*.txt'))
+        label_files =sorted(os.listdir(os.path.join(self.data_path, 'labels')))
         
         total_images = len(label_files)
         train_ratio = 0.7

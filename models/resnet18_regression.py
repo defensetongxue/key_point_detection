@@ -32,7 +32,8 @@ class Resnet18Regression(nn.Module):
         coords = (coords + 1) / 2
 
         return coords, presence
-def combined_loss(coords_pred, presence_pred, coords_gt, presence_gt):
+def combined_loss(outputs,coords_gt,presence_gt):
+    coords_pred , presence_pred = outputs
     mse_loss = nn.MSELoss()
     bce_loss = nn.BCELoss()
 
@@ -45,5 +46,5 @@ def combined_loss(coords_pred, presence_pred, coords_gt, presence_gt):
 def build_resnet18_regression(num_keypoints=1):
     model = Resnet18Regression(num_keypoints)
     model.output_format = "regression"
-    loss_function = combined_loss()
+    loss_function = combined_loss
     return model, loss_function

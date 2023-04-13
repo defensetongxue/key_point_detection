@@ -4,18 +4,23 @@ import torch
 from torch.utils.data import DataLoader
 from config import get_config
 from Datasets_ import get_keypoint_dataset
-from utils_ import visualize_result
+from utils_ import visualize_result,get_instance
+import models
 
 if __name__ == '__main__':
     args = get_config()
-
+    # Set up the device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # Load the model
-    model = torch.load(args.model_path)
-    model.to(args.device)
+    model, criterion = get_instance(models, args.model)
+    model.load_state_dict(
+        torch.load(os.path.join('./checkpoint',args.save_name)))
+    model.to(device)
     model.eval()
 
     # Create the dataset and data loader
-    test_dataset = get_keypoint_dataset(split='test', output_format=model.output_format)
+    data_path=os.path.join(args.path_tar, args.dataset)
+    test_dataset = get_keypoint_dataset(data_path,split='test', output_format=model.output_format)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
     # Create the visualizations directory if it doesn't exist
@@ -24,10 +29,12 @@ if __name__ == '__main__':
 
     # Test the model and save visualizations
     with torch.no_grad():
-        for i, (inputs, targets) in enumerate(test_loader):
-            inputs = inputs.to(args.device)
+        for i, (inputs, targets,prescence) in enumerate(test_loader):
+            inputs = inputs.to(device)
             outputs = model(inputs)
-            outputs,targets=outputs.squeeze(),targets.squeeze()
+            inputs=inputs.squeeze()
+            targets=targets.squeeze()
+            outputs=outputs[0].squeeze()
             target_path = os.path.join(visual_dir, f'{i}.jpg')
             visualize_result(inputs.cpu(), outputs.cpu(), targets, target_path, model.output_format)
 

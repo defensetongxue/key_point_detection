@@ -24,9 +24,10 @@ for dataset_name, dataset_class in datasets.items():
     if not os.path.exists(target_path):
         os.mkdir(target_path)
     else:
+        # continue
         os.system(f"rm -rf {target_path}/*")
     dataset = dataset_class(source_path, target_path)
-    dataset.process()
+    dataset.parse()
     print(f"Done processing {dataset_name}.")
 
 print("All datasets processed successfully.")

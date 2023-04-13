@@ -26,7 +26,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
     def __getitem__(self, idx):
         annotation = self.annotations[idx]
 
-        img_path = os.path.join(self.data_path, 'images', f"{annotation['image_id']}.png")
+        img_path = os.path.join(self.data_path, 'images', f"{annotation['image_name']}")
         img = Image.open(img_path).convert('RGB')
 
         if annotation['num_keypoints'] == 0:
@@ -38,7 +38,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
             keypoints = keypoints[:, :2].flatten()
             presence = torch.ones((1,1)).flatten()
 
-        img, labels = self.transform(img, keypoints)
+            img, labels = self.transform(img, keypoints)
         # image_width, image_height = img.size
         # labels = create_heatmap_label(keypoints, image_width,image_height)
 
@@ -54,42 +54,41 @@ class KeypointDetectionTransformHeatmap:
         self.mode = mode
 
         if self.mode == 'train':
-            self.transforms = transforms.Compose([
+            self.transforms = transformsCompose([
                 ContrastEnhancement(factor=1.5),
                 Resize(size),
                 Fix_RandomRotation(),
                 RandomHorizontalFlip(),
                 RandomVerticalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std)
+                ToTensor(),
+                Normalize(mean, std)
             ])
         else:
-            self.transforms = transforms.Compose([
+            self.transforms = transformsCompose([
                 ContrastEnhancement(factor=1.5),
                 Resize(size),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std)
+                ToTensor(),
+                Normalize(mean, std)
             ])
 
     def __call__(self, img, keypoints):
         img, keypoints = self.transforms(img, keypoints)
-        image_width, image_height = img.size
+        _,image_width, image_height = img.shape
         heatmap = create_heatmap_label(keypoints, image_width, image_height)
         return img, heatmap
     
 
-def create_heatmap_label(annotation,
+def create_heatmap_label(keypoints,
                             output_width, output_height,
                               sigma=2):
-    num_keypoints = len(annotation['keypoints'])
-    heatmap = np.zeros((num_keypoints, 
-                        output_height, output_width), dtype=np.float32)
 
-    for i, (x, y) in enumerate(annotation['keypoints']):
+    heatmap = np.zeros((output_height, output_width), dtype=np.float32)
+
+    x,y=keypoints
         
-        # Create a Gaussian heatmap around the keypoint location
-        xx, yy = np.meshgrid(np.arange(output_width), np.arange(output_height),
-                              sparse=True)
-        heatmap[i] = np.exp(-((xx - x) ** 2 + (yy - y) ** 2) / (2 * sigma ** 2))
+    # Create a Gaussian heatmap around the keypoint location
+    xx, yy = np.meshgrid(np.arange(output_width), np.arange(output_height),
+                          sparse=True)
+    heatmap = np.exp(-((xx - x) ** 2 + (yy - y) ** 2) / (2 * sigma ** 2))
 
     return heatmap

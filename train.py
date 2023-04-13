@@ -20,8 +20,9 @@ model, criterion = get_instance(models, args.model)
 output_format = model.output_format
 
 # Load the datasets
-train_dataset = get_keypoint_dataset(args.path_tar, "train", output_format)
-val_dataset = get_keypoint_dataset(args.path_tar, "valid", output_format)
+data_path=os.path.join(args.path_tar, args.dataset)
+train_dataset = get_keypoint_dataset(data_path,"train", output_format)
+val_dataset = get_keypoint_dataset(data_path,"valid", output_format)
 
 # Create the data loaders
 train_loader = DataLoader(train_dataset, batch_size=args.batch_size,
@@ -52,7 +53,7 @@ for epoch in range(args.epoch):
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         early_stop_counter = 0
-        torch.save(model.state_dict(), args.save_name)
+        torch.save(model.state_dict(),(os.path.join('./checkpoint',args.save_name)))
         print(f"Model saved as {args.save_name}")
     else:
         early_stop_counter += 1
