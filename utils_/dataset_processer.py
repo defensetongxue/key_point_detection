@@ -289,7 +289,6 @@ class GY_DB(BaseDB):
             img = Image.open(img_path)
             width, height = img.size
 
-            coco_annotations = []
             with open(os.path.join(self.data_path,'labels',labels_file), 'r') as f:
                 lines=f.readlines()
                 if len(lines)<=0:
@@ -306,7 +305,7 @@ class GY_DB(BaseDB):
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
                 json.dump(coco_annotations, f)
     def parse(self):
-        label_files =sorted(os.listdir(os.path.join(self.data_path, 'labels')))
+        label_files =sorted(os.listdir(os.path.join(self.data_path, 'images')))
         
         total_images = len(label_files)
         train_ratio = 0.7

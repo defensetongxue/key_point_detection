@@ -1,5 +1,4 @@
 import torch
-from .visual_kit import visualize_result
 
 def train_epoch(model, optimizer, train_loader, loss_function, device):
     model.train()
@@ -18,7 +17,6 @@ def train_epoch(model, optimizer, train_loader, loss_function, device):
         optimizer.step()
 
         running_loss += loss.item()
-
     return running_loss / len(train_loader)
 
 def val_epoch(model, val_loader, loss_function, device):
