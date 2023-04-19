@@ -90,6 +90,7 @@ class DRIONS_DB(BaseDB):
         train_split = [f"{number:03}" for number in range(1, 101)]
         val_split = [f"{number:03}" for number in range(101, 106)]
         test_split = [f"{number:03}" for number in range(106, 111)]
+        print(f"There is train: {len(train_split)} , val: {len(val_split)} ,test:{len(test_split)}")
 
         self.process_split(train_split, 'train')
         self.process_split(val_split, 'valid')
@@ -149,6 +150,7 @@ class HRF_DB(BaseDB):
         train_split = indices[:train_count]
         val_split = indices[train_count:train_count + val_count]
         test_split = indices[train_count + val_count:]
+        print(f"There is train: {len(train_split)} , val: {len(val_split)} ,test:{len(test_split)}")
 
         self.process_split(train_split, 'train')
         self.process_split(val_split, 'valid')
@@ -222,6 +224,8 @@ class STARE_DB(BaseDB):
         train_split=[f"{number:04}" for number in range(1,train_count)]
         val_split = [f"{number:04}" for number in range(train_count,train_count + val_count)]
         test_split = [f"{number:04}" for number in range(train_count + val_count,total_images+1)]
+        print(f"There is train: {len(train_split)} , val: {len(val_split)} ,test:{len(test_split)}")
+        
         self.process_split(train_split, 'train',image_dict)
         self.process_split(val_split, 'valid',image_dict)
         self.process_split(test_split, 'test',image_dict)
@@ -272,6 +276,7 @@ class ODVOC_DB(BaseDB):
         train_split = xml_files[:train_count]
         val_split = xml_files[train_count:train_count + val_count]
         test_split = xml_files[train_count + val_count:]
+        print(f"There is train: {len(train_split)} , val: {len(val_split)} ,test:{len(test_split)}")
 
         self.process_split(train_split, 'train')
         self.process_split(val_split, 'valid')
@@ -305,7 +310,7 @@ class GY_DB(BaseDB):
         with open(os.path.join(self.target_path, 'annotations', f"{split_name}.json"), 'w') as f:
                 json.dump(coco_annotations, f)
     def parse(self):
-        label_files =sorted(os.listdir(os.path.join(self.data_path, 'images')))
+        label_files =sorted(os.listdir(os.path.join(self.data_path, 'labels')))
         
         total_images = len(label_files)
         train_ratio = 0.7
@@ -318,7 +323,7 @@ class GY_DB(BaseDB):
         train_split = label_files[:train_count]
         val_split = label_files[train_count:train_count + val_count]
         test_split = label_files[train_count + val_count:]
-
+        print(f"There is train: {len(train_split)} , val: {len(val_split)} ,test:{len(test_split)}")
         self.process_split(train_split, 'train')
         self.process_split(val_split, 'valid')
         self.process_split(test_split, 'test')
