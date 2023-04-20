@@ -470,4 +470,4 @@ def Build_HRNet(config, **kwargs):
     pretrained = config.MODEL.PRETRAINED if config.MODEL.INIT_WEIGHTS else ''
     model.init_weights(pretrained=pretrained)
 
-    return model
+    return model,torch.nn.MSELoss()
