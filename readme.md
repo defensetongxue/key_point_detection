@@ -9,3 +9,10 @@ There are train: 31 , val: 9 ,test:5
 There are train: 81 , val: 23 ,test:12
 ## STARE
 There are train: 222 , val: 63 ,test:34
+
+# TODO
+pretrained backbone
+
+fusiond dataset
+
+test and visul

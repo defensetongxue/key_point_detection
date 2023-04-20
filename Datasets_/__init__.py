@@ -1,1 +1,1 @@
-from .keypoint_dataset import get_keypoint_dataset
+from .dataset_heatmap import KeypointDetectionDatasetHeatmap as CustomDatset

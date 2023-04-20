@@ -75,7 +75,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
             heatmap=np.zeros((heatmap_width,
                                        heatmap_height),dtype=np.float32)
             heatmap=heatmap[np.newaxis,:]
-            return img, heatmap
+            return img, heatmap,img_path
         else:
             keypoints = torch.tensor(annotation['keypoints'], dtype=torch.float32).view(-1, 3)
             keypoints = keypoints[:, :2].flatten()
@@ -90,7 +90,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
             heatmap=self.generate_target(heatmap,keypoints*self.heatmap_ratio,sigma=self.sigma)
             # labels = create_heatmap_label(keypoints, image_width,image_height)
             heatmap=heatmap[np.newaxis,:]
-            return img, heatmap
+            return img, heatmap,img_path
         
 
 

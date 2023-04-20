@@ -2,8 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from config import get_config
 from utils_ import get_instance, train_epoch, val_epoch,get_optimizer
-from Datasets_ import get_keypoint_dataset
-from torch import optim
+from Datasets_ import CustomDatset
 import models
 import os
 # Initialize the folder
@@ -15,8 +14,7 @@ args = get_config()
 
 # Init the result file to store the pytorch model and other mid-result
 result_path = args.result_path
-if not os.path.exists(result_path):
-    os.mkdir(result_path)
+os.makedirs(result_path,exist_ok=True)
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
@@ -38,8 +36,8 @@ else:
 
 # Load the datasets
 data_path=os.path.join(args.path_tar, args.dataset)
-train_dataset = get_keypoint_dataset(data_path,split="train")
-val_dataset = get_keypoint_dataset(data_path,split="valid")
+train_dataset = CustomDatset(data_path,split="train")
+val_dataset = CustomDatset(data_path,split="valid")
 
 # Create the data loaders
 train_loader = DataLoader(train_dataset, batch_size=args.configs.TRAIN.BATCH_SIZE_PER_GPU,
