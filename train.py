@@ -20,8 +20,6 @@ model, criterion = get_instance(models, args.model,args.configs)
 output_format = model.output_format
 
 # Creatr optimizer
-optimizer = get_instance(optim, args.optimizer_type,
-                         model.parameters(), lr=args.lr)
 optimizer = get_optimizer(args.configs, model)
 last_epoch = args.configs.TRAIN.BEGIN_EPOCH
 if isinstance(args.configs.TRAIN.LR_STEP, list):
