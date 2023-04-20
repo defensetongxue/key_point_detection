@@ -5,9 +5,9 @@ from .defaults import update_config
 def get_config():
     parser = argparse.ArgumentParser()
     # cleansing
-    parser.add_argument('--path_src', type=str, default="../../autodl-tmp/datasets_original",
+    parser.add_argument('--path_src', type=str, default="../autodl-tmp/datasets_original",
                         help='Path to the source folder containing original datasets.')
-    parser.add_argument('--path_tar', type=str, default='../../autodl-tmp/datasets_keypoint',
+    parser.add_argument('--path_tar', type=str, default='../autodl-tmp/datasets_keypoint',
                         help='Path to the target folder to store the processed datasets.')
     # Model
     parser.add_argument('--model', type=str, default='hrnet',
