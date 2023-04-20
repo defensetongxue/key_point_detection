@@ -1,7 +1,7 @@
 from .dataset_regression import KeypointDetectionDatasetRegression
 from .dataset_heatmap import KeypointDetectionDatasetHeatmap
 
-def get_keypoint_dataset(path, split, output_format, **kwargs):
+def get_keypoint_dataset(path, split, output_format='heatmap', **kwargs):
     if output_format == 'regression':
         return KeypointDetectionDatasetRegression(path, split, **kwargs)
     elif output_format == 'heatmap':

@@ -7,7 +7,7 @@ from torchvision import transforms
 from .transforms_kit import *
 
 class KeypointDetectionDatasetHeatmap(Dataset):
-    def __init__(self, data_path, spilt='train'):
+    def __init__(self, data_path,heatmap_rate=0.25,sigma=1.5, spilt='train'):
         self.data_path = data_path
         if spilt=='train':
             self.transform=KeypointDetectionTransformHeatmap(mode='train')
@@ -18,31 +18,72 @@ class KeypointDetectionDatasetHeatmap(Dataset):
                 f"Invalid spilt: {spilt}, spilt should be one of train|valid|test")
 
         # Load annotations
-        self.annotations = json.load(open(os.path.join(data_path, 'annotations', f"{spilt}.json")))
+        self.annotations = json.load(open(os.path.join(data_path, 
+                                                       'annotations', f"{spilt}.json")))
+        self.heatmap_ratio=heatmap_rate
+        self.sigma=sigma
 
     def __len__(self):
         return len(self.annotations)
+    
+    def generate_target(self,img, pt, sigma, label_type='Gaussian'):
+        # Check that any part of the gaussian is in-bounds
+        tmp_size = sigma * 3
+        ul = [int(pt[0] - tmp_size), int(pt[1] - tmp_size)]
+        br = [int(pt[0] + tmp_size + 1), int(pt[1] + tmp_size + 1)]
+        if (ul[0] >= img.shape[1] or ul[1] >= img.shape[0] or
+                br[0] < 0 or br[1] < 0):
+            # If not, just return the image as is
+            raise
+            return img
 
+        # Generate gaussian
+        size = 2 * tmp_size + 1
+        x = np.arange(0, size, 1, np.float32)
+        y = x[:, np.newaxis]
+        x0 = y0 = size // 2
+        # The gaussian is not normalized, we want the center value to equal 1
+        if label_type == 'Gaussian':
+            g = np.exp(- ((x - x0) ** 2 + (y - y0) ** 2) / (2 * sigma ** 2))
+        else:
+            g = sigma / (((x - x0) ** 2 + (y - y0) ** 2 + sigma ** 2) ** 1.5)
+
+        # Usable gaussian range
+        g_x = max(0, -ul[0]), min(br[0], img.shape[1]) - ul[0]
+        g_y = max(0, -ul[1]), min(br[1], img.shape[0]) - ul[1]
+        # Image range
+        img_x = max(0, ul[0]), min(br[0], img.shape[1])
+        img_y = max(0, ul[1]), min(br[1], img.shape[0])
+
+        img[img_y[0]:img_y[1], img_x[0]:img_x[1]] = g[g_y[0]:g_y[1], g_x[0]:g_x[1]]
+        return img
+    
     def __getitem__(self, idx):
         annotation = self.annotations[idx]
 
         img_path = os.path.join(self.data_path, 'images', f"{annotation['image_name']}")
         img = Image.open(img_path).convert('RGB')
-
-        if annotation['num_keypoints'] == 0:
-            keypoints = torch.zeros(1, 2)  # Placeholder values, since there's no keypoint.
-            presence = torch.tensor([[0]])  # Ground truth for keypoint presence (0 for no keypoint).
         
+        if annotation['num_keypoints'] == 0:
+            # Placeholder values, since there's no keypoint.
+            keypoints = torch.zeros(1, 2)  
+            
+            img, keypoints = self.transform(img, keypoints)
+            heatmap_size=img.shape*self.heatmap_ratio
+            heatmap=torch.zeros(heatmap_size)
+            return img, heatmap
         else:
             keypoints = torch.tensor(annotation['keypoints'], dtype=torch.float32).view(-1, 3)
             keypoints = keypoints[:, :2].flatten()
-            presence = torch.ones((1,1)).flatten()
-
-            img, labels = self.transform(img, keypoints)
-        # image_width, image_height = img.size
-        # labels = create_heatmap_label(keypoints, image_width,image_height)
-
-        return img, labels, presence
+            # As the limitation of the dataset, there is no more than one 
+            # keypoint in each image
+            img, keypoints = self.transform(img, keypoints)
+            heatmap_size=img.shape*self.heatmap_ratio
+            
+            heatmap=self.generate_target(heatmap,keypoints,sigma=self.sigma)
+            # labels = create_heatmap_label(keypoints, image_width,image_height)
+            return img, heatmap
+        
 
 
 class KeypointDetectionTransformHeatmap:
@@ -73,22 +114,7 @@ class KeypointDetectionTransformHeatmap:
 
     def __call__(self, img, keypoints):
         img, keypoints = self.transforms(img, keypoints)
-        _,image_width, image_height = img.shape
-        heatmap = create_heatmap_label(keypoints, image_width, image_height)
-        return img, heatmap
+        return img, keypoints
     
 
-def create_heatmap_label(keypoints,
-                            output_width, output_height,
-                              sigma=2):
-
-    heatmap = np.zeros((output_height, output_width), dtype=np.float32)
-
-    x,y=keypoints
-        
-    # Create a Gaussian heatmap around the keypoint location
-    xx, yy = np.meshgrid(np.arange(output_width), np.arange(output_height),
-                          sparse=True)
-    heatmap = np.exp(-((xx - x) ** 2 + (yy - y) ** 2) / (2 * sigma ** 2))
-
-    return heatmap
+    
