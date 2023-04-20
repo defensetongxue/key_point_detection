@@ -5,9 +5,8 @@ from PIL import Image
 import json
 from torchvision import transforms
 from .transforms_kit import *
-
 class KeypointDetectionDatasetHeatmap(Dataset):
-    def __init__(self, data_path,heatmap_rate=0.25,sigma=1.5, spilt='train'):
+    def __init__(self, data_path, spilt='train',heatmap_rate=0.25,sigma=1.5):
         self.data_path = data_path
         if spilt=='train':
             self.transform=KeypointDetectionTransformHeatmap(mode='train')
@@ -66,11 +65,16 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         
         if annotation['num_keypoints'] == 0:
             # Placeholder values, since there's no keypoint.
-            keypoints = torch.zeros(1, 2)  
+            keypoints = torch.zeros(1, 2).flatten()
             
             img, keypoints = self.transform(img, keypoints)
-            heatmap_size=img.shape*self.heatmap_ratio
-            heatmap=torch.zeros(heatmap_size)
+            
+            img_width,img_height=img.shape[1],img.shape[2]
+            heatmap_width=int(img_width*self.heatmap_ratio)
+            heatmap_height=int(img_height*self.heatmap_ratio)
+            heatmap=np.zeros((heatmap_width,
+                                       heatmap_height),dtype=np.float32)
+            heatmap=heatmap[np.newaxis,:]
             return img, heatmap
         else:
             keypoints = torch.tensor(annotation['keypoints'], dtype=torch.float32).view(-1, 3)
@@ -78,10 +82,14 @@ class KeypointDetectionDatasetHeatmap(Dataset):
             # As the limitation of the dataset, there is no more than one 
             # keypoint in each image
             img, keypoints = self.transform(img, keypoints)
-            heatmap_size=img.shape*self.heatmap_ratio
-            
-            heatmap=self.generate_target(heatmap,keypoints,sigma=self.sigma)
+            img_width,img_height=img.shape[1],img.shape[2]
+            heatmap_width=int(img_width*self.heatmap_ratio)
+            heatmap_height=int(img_height*self.heatmap_ratio)
+            heatmap=np.zeros((heatmap_width,
+                                       heatmap_height),dtype=np.float32)
+            heatmap=self.generate_target(heatmap,keypoints*self.heatmap_ratio,sigma=self.sigma)
             # labels = create_heatmap_label(keypoints, image_width,image_height)
+            heatmap=heatmap[np.newaxis,:]
             return img, heatmap
         
 

@@ -6,6 +6,10 @@ from Datasets_ import get_keypoint_dataset
 from torch import optim
 import models
 import os
+# Initialize the folder
+os.makedirs("checkpoints",exist_ok=True)
+os.makedirs("experiments",exist_ok=True)
+
 # Parse arguments
 args = get_config()
 
@@ -34,8 +38,8 @@ else:
 
 # Load the datasets
 data_path=os.path.join(args.path_tar, args.dataset)
-train_dataset = get_keypoint_dataset(data_path,"train")
-val_dataset = get_keypoint_dataset(data_path,"valid")
+train_dataset = get_keypoint_dataset(data_path,split="train")
+val_dataset = get_keypoint_dataset(data_path,split="valid")
 
 # Create the data loaders
 train_loader = DataLoader(train_dataset, batch_size=args.configs.TRAIN.BATCH_SIZE_PER_GPU,
@@ -51,23 +55,23 @@ print(f"using {device} for training")
 
 early_stop_counter = 0
 best_val_loss = float('inf')
-
+total_epoches=args.configs.TRAIN.END_EPOCH
 # Training and validation loop
-for epoch in range(last_epoch,args.epoch):
+for epoch in range(last_epoch,total_epoches):
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device)
-    print(f"Epoch {epoch + 1}/{args.epoch}, Train Loss: {train_loss}")
+    print(f"Epoch {epoch + 1}/{total_epoches}, Train Loss: {train_loss}")
 
     val_loss = val_epoch(model, val_loader, criterion, device)
-    print(f"Epoch {epoch + 1}/{args.epoch}, Val Loss: {val_loss}")
+    print(f"Epoch {epoch + 1}/{total_epoches}, Val Loss: {val_loss}")
 
     # Early stopping
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         early_stop_counter = 0
-        torch.save(model.state_dict(),(os.path.join('./checkpoint',args.save_name)))
+        torch.save(model.state_dict(),(os.path.join(args.save_name)))
         print(f"Model saved as {args.save_name}")
     else:
         early_stop_counter += 1
-        if early_stop_counter >= args.configs.EARYLY_STOP:
+        if early_stop_counter >= args.configs.TRAIN.EARLY_STOP:
             print("Early stopping triggered")
             break

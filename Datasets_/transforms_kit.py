@@ -2,6 +2,7 @@ import torch
 from PIL import Image, ImageEnhance
 from torchvision.transforms import functional as F
 from torchvision import transforms
+
 class transformsCompose:
     def __init__(self,transforms):
         self.transforms=transforms
@@ -53,7 +54,7 @@ class Fix_RandomRotation:
 
     def __call__(self, img, keypoint):
         angle = self.get_params()
-        img = F.rotate(img, angle, self.resample, self.expand, self.center)
+        img = F.rotate(img, angle, F.InterpolationMode.NEAREST, expand=self.expand, center=self.center)
         x, y = keypoint
         img_w, img_h = img.size
 
@@ -65,6 +66,7 @@ class Fix_RandomRotation:
             keypoint = torch.tensor([img_w - x, img_h - y])
         # No change for angle == 0
         return img, keypoint
+    
 class RandomHorizontalFlip:
     def __call__(self, img, keypoint):
         if torch.rand(1) < 0.5:
@@ -86,12 +88,6 @@ class ToTensor:
         img=self.totensor(img)
         return img, keypoint
     
-class ToTensor:
-    def __init__(self) -> None:
-        self.totensor=transforms.ToTensor()
-    def __call__(self, img, keypoint):
-        img=self.totensor(img)
-        return img, keypoint
 
 class Normalize:
     def __init__(self,mean,std) -> None:
