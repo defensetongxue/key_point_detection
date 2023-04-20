@@ -1,6 +1,6 @@
 import numpy as np
 import inspect
-
+from torch import optim
 
 def contour_to_bbox(file_name):
     """
@@ -30,3 +30,31 @@ def get_instance(module, class_name, *args, **kwargs):
     except AttributeError:
         available_classes = [name for name, obj in inspect.getmembers(module, inspect.isclass) if obj.__module__ == module.__name__]
         raise ValueError(f"{class_name} not found in the given module. Available classes: {', '.join(available_classes)}")
+
+
+def get_optimizer(cfg, model):
+    optimizer = None
+    if cfg.TRAIN.OPTIMIZER == 'sgd':
+        optimizer = optim.SGD(
+            filter(lambda p: p.requires_grad, model.parameters()),
+            lr=cfg.TRAIN.LR,
+            momentum=cfg.TRAIN.MOMENTUM,
+            weight_decay=cfg.TRAIN.WD,
+            nesterov=cfg.TRAIN.NESTEROV
+        )
+    elif cfg.TRAIN.OPTIMIZER == 'adam':
+        optimizer = optim.Adam(
+            filter(lambda p: p.requires_grad, model.parameters()),
+            lr=cfg.TRAIN.LR
+        )
+    elif cfg.TRAIN.OPTIMIZER == 'rmsprop':
+        optimizer = optim.RMSprop(
+            filter(lambda p: p.requires_grad, model.parameters()),
+            lr=cfg.TRAIN.LR,
+            momentum=cfg.TRAIN.MOMENTUM,
+            weight_decay=cfg.TRAIN.WD,
+            alpha=cfg.TRAIN.RMSPROP_ALPHA,
+            centered=cfg.TRAIN.RMSPROP_CENTERED
+        )
+
+    return optimizer
