@@ -57,11 +57,10 @@ class Fix_RandomRotation:
         img = F.rotate(img, angle, F.InterpolationMode.NEAREST, expand=self.expand, center=self.center)
         x, y = keypoint
         img_w, img_h = img.size
-
         if angle == -90:
-            keypoint = torch.tensor([y, img_w - x])
+            keypoint = torch.tensor([y,  x])
         elif angle == 90:
-            keypoint = torch.tensor([img_h - y, x])
+            keypoint = torch.tensor([y, img_h- x])
         elif angle == 180:
             keypoint = torch.tensor([img_w - x, img_h - y])
         # No change for angle == 0

@@ -25,7 +25,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
     def __len__(self):
         return len(self.annotations)
     
-    def generate_target(self,img, pt, sigma, label_type='Gaussian'):
+    def generate_target(self,img, pt, sigma, label_type='Gaussian',img_path=''):
         # Check that any part of the gaussian is in-bounds
         tmp_size = sigma * 3
         ul = [int(pt[0] - tmp_size), int(pt[1] - tmp_size)]
@@ -33,6 +33,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         if (ul[0] >= img.shape[1] or ul[1] >= img.shape[0] or
                 br[0] < 0 or br[1] < 0):
             # If not, just return the image as is
+            print(pt,img_path)
             raise
             return img
 
@@ -87,7 +88,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
             heatmap_height=int(img_height*self.heatmap_ratio)
             heatmap=np.zeros((heatmap_width,
                                        heatmap_height),dtype=np.float32)
-            heatmap=self.generate_target(heatmap,keypoints*self.heatmap_ratio,sigma=self.sigma)
+            heatmap=self.generate_target(heatmap,keypoints*self.heatmap_ratio,sigma=self.sigma,img_path=img_path)
             # labels = create_heatmap_label(keypoints, image_width,image_height)
             heatmap=heatmap[np.newaxis,:]
             return img, heatmap,img_path

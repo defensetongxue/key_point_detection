@@ -14,7 +14,7 @@ def get_config():
                         help='Name of the model architecture to be used for training.')
     
     # train and test
-    parser.add_argument('--dataset', type=str, default="GY",
+    parser.add_argument('--dataset', type=str, default="all",
                         help='Datset used. DRIONS-DB,GY,HRF,ODVOC,STARE | all')
     parser.add_argument('--save_name', type=str, default="./checkpoints/best.pth",
                         help='Name of the file to save the best model during training.')

@@ -71,14 +71,13 @@ class DRIONS_DB(BaseDB):
         annotation_file = os.path.join(self.data_path, 'experts_anotation')
 
         coco_annotations = []
-
         for idx, split_number in enumerate(split):
             annotation = contour_to_bbox(
                 os.path.join(annotation_file, f"anotExpert1_{split_number}.txt"))
             x_center, y_center, _, _ = annotation
             coco_annotations.append(create_coco_annotation(
                 f"{idx}.jpg", idx, x_center, y_center,num_keypoints=1))
-
+            
             # Copy the original image to target_path/images
             shutil.copy(os.path.join(image_file,  f"image_{split_number}.jpg"),
                         os.path.join(self.target_path, 'images', f"{idx}.jpg"))
@@ -110,18 +109,16 @@ class HRF_DB(BaseDB):
         annotations = pd.read_csv(os.path.join(self.data_path, 'annotation.csv'))
 
         coco_annotations = []
-
         for idx, row in annotations.iterrows():
             if idx not in split:
                 continue
-
+                
             image_name = row['image']
-            center_x = row['Pap. Center x']
-            center_y = row['Pap. Center y']
+            x_center = row['Pap. Center x']
+            y_center = row['Pap. Center y']
 
             coco_annotations.append(create_coco_annotation(
-                f"{idx}.jpg", idx, center_x, center_y, num_keypoints=1))
-
+                f"{idx}.jpg", idx, x_center, y_center, num_keypoints=1))
             # Copy the original image to target_path/images
             shutil.copy(os.path.join(self.data_path, 'images', f"{image_name}.jpg"),
                         os.path.join(self.target_path, 'images', f"{idx}.jpg"))
@@ -249,11 +246,11 @@ class ODVOC_DB(BaseDB):
 
     def process_split(self, split, split_name):
         coco_annotations = []
-
         for idx, xml_file in enumerate(split):
             filename, xmin, ymin, xmax, ymax = self.parse_xml(xml_file)
             x_center, y_center, _,_ = xyxy2xywh(xmin, ymin, xmax, ymax)
-
+            
+            
             shutil.copy(os.path.join(self.data_path, 'images', f"{filename[:-4]}.png"),
                         os.path.join(self.target_path, 'images', f"{idx}.png"))
             coco_annotations.append(
@@ -327,3 +324,10 @@ class GY_DB(BaseDB):
         self.process_split(train_split, 'train')
         self.process_split(val_split, 'valid')
         self.process_split(test_split, 'test')
+
+def check_annotations(image_path,x,y):
+    import cv2
+    file_name=os.path.basename(image_path)
+    img=cv2.imread(image_path)
+    cv2.circle(img, (x,y), 8, (255, 0, 0), -1)
+    cv2.imwrite(os.path.join('./tmp_save',file_name),img)

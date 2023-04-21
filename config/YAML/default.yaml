@@ -6,7 +6,7 @@ MODEL:
   NAME: 'hrnet'
   NUM_JOINTS: 1
   INIT_WEIGHTS: true
-  PRETRAINED: './models/pretrained'
+  PRETRAINED: './models/pretrained/hrnetv2_w18_imagenet_pretrained.pth'
   SIGMA: 1.5
   IMAGE_SIZE:
     - 256
@@ -59,7 +59,7 @@ TRAIN:
   BATCH_SIZE_PER_GPU: 16
   SHUFFLE: true
   BEGIN_EPOCH: 0
-  END_EPOCH: 100
+  END_EPOCH: 500
   EARLY_STOP: 30
   OPTIMIZER: 'adam'
   LR: 0.0001
