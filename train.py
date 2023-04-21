@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from config import get_config
-from utils_ import get_instance, train_epoch, val_epoch,get_optimizer
+from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,get_dataset
 from Datasets_ import CustomDatset
 import models
 import os
@@ -35,10 +35,7 @@ else:
     )
 
 # Load the datasets
-data_path=os.path.join(args.path_tar, args.dataset)
-train_dataset = CustomDatset(data_path,split="train")
-val_dataset = CustomDatset(data_path,split="valid")
-
+train_dataset,val_dataset=get_dataset(args.path_tar,args.dataset)
 # Create the data loaders
 train_loader = DataLoader(train_dataset, batch_size=args.configs.TRAIN.BATCH_SIZE_PER_GPU,
                           shuffle=True, num_workers=4)

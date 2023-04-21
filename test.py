@@ -24,8 +24,8 @@ model.load_state_dict(
 model.eval()
 
 # Create the dataset and data loader
-data_path=os.path.join(args.path_tar, args.dataset)
-test_dataset = CustomDatset(data_path,spilt='test')
+data_path=os.path.join(args.path_tar, "GY")
+test_dataset = CustomDatset(data_path,split='test')
 test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 # Create the visualizations directory if it doesn't exist
 

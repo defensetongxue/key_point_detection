@@ -34,8 +34,8 @@ _C.MODEL.INIT_WEIGHTS = True
 _C.MODEL.PRETRAINED = ''
 _C.MODEL.NUM_JOINTS = 17
 _C.MODEL.TARGET_TYPE = 'Gaussian'
-_C.MODEL.IMAGE_SIZE = [256, 256]  # width * height
-_C.MODEL.HEATMAP_SIZE = [64, 64]  # width * height
+_C.MODEL.IMAGE_SIZE = [416, 416]  # width * height
+_C.MODEL.HEATMAP_SIZE = [104, 104]  # width * height
 _C.MODEL.SIGMA = 1.5
 _C.MODEL.EXTRA = CN()
 
