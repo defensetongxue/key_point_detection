@@ -6,19 +6,19 @@ import json
 from torchvision import transforms
 from .transforms_kit import *
 class KeypointDetectionDatasetHeatmap(Dataset):
-    def __init__(self, data_path, spilt='train',heatmap_rate=0.25,sigma=1.5):
+    def __init__(self, data_path, split='train',heatmap_rate=0.25,sigma=1.5):
         self.data_path = data_path
-        if spilt=='train':
+        if split=='train':
             self.transform=KeypointDetectionTransformHeatmap(mode='train')
-        elif spilt=='valid' or spilt=='test':
+        elif split=='valid' or split=='test':
             self.transform=KeypointDetectionTransformHeatmap(mode='val')
         else:
             raise ValueError(
-                f"Invalid spilt: {spilt}, spilt should be one of train|valid|test")
+                f"Invalid split: {split}, split should be one of train|valid|test")
 
         # Load annotations
         self.annotations = json.load(open(os.path.join(data_path, 
-                                                       'annotations', f"{spilt}.json")))
+                                                       'annotations', f"{split}.json")))
         self.heatmap_ratio=heatmap_rate
         self.sigma=sigma
 
