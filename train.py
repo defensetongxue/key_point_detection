@@ -19,7 +19,9 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
 model, criterion = get_instance(models, args.model,args.configs)
-
+if os.path.isfile(args.from_checkpoint):
+    model.load_state_dict(
+    torch.load(args.from_checkpoint))
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
 last_epoch = args.configs.TRAIN.BEGIN_EPOCH
@@ -38,9 +40,9 @@ else:
 train_dataset,val_dataset=get_dataset(args.path_tar,args.dataset)
 # Create the data loaders
 train_loader = DataLoader(train_dataset, batch_size=args.configs.TRAIN.BATCH_SIZE_PER_GPU,
-                          shuffle=True, num_workers=1)
+                          shuffle=True, num_workers=4)
 val_loader = DataLoader(val_dataset, batch_size=args.configs.TRAIN.BATCH_SIZE_PER_GPU,
-                        shuffle=False, num_workers=1)
+                        shuffle=False, num_workers=4)
 
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
