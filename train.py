@@ -20,6 +20,7 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 # Create the model and criterion
 model, criterion = get_instance(models, args.model,args.configs)
 if os.path.isfile(args.from_checkpoint):
+    print(f"loadding the exit checkpoints {args.from_checkpoint}")
     model.load_state_dict(
     torch.load(args.from_checkpoint))
 # Creatr optimizer

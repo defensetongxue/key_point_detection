@@ -20,7 +20,7 @@ def get_config():
                         help='Name of the file to save the best model during training.')
     parser.add_argument('--result_path', type=str, default="experiments/visual",
                         help='Path to the visualize result or the pytorch model will be saved.')
-    parser.add_argument('--from_checkpoint', type=str, default="./checkpoint/begin.pth",
+    parser.add_argument('--from_checkpoint', type=str, default="./checkpoints/begin.pth",
                         help='load the exit checkpoint.')
 
     # config file 
