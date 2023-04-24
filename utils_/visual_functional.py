@@ -2,7 +2,7 @@ import torch
 import math
 import cv2
 
-def visualize_and_save_landmarks(image_path, preds, save_path):
+def visualize_and_save_landmarks(image_path, preds, save_path,text=None):
     img = cv2.imread(image_path)
     img=cv2.resize(img,(416,416))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -11,10 +11,12 @@ def visualize_and_save_landmarks(image_path, preds, save_path):
         preds = preds.squeeze(0).numpy()
 
     # Draw landmarks on the image
-    
+    print(text)
     for x, y in preds:
         cv2.circle(img, (int(x), int(y)), 8, (255, 0, 0), -1)
-
+        if text:
+            cv2.putText(img,str(text),(200, 200),
+            fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=(255, 0, 0),thickness=4)
     # Save the image with landmarks
     cv2.imwrite(save_path, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
     
