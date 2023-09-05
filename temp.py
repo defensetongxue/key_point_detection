@@ -1,12 +1,22 @@
-import cv2
-import os
 import json
-img=cv2.imread("1.jpg")
-annotations = json.load(open(os.path.join("../autodl-tmp/datasets_keypoint/STARE", 
-                                                       'annotations', "train.json")))
-for i in annotations:
-    if (i["image_name"])=='12.ppm':
-        x,y=i["keypoints"][:2]
-        print(x,y)
-        cv2.circle(img, (100,200), 8, (255, 0, 0), -1)
-        cv2.imwrite('2.jpg',img)
+import yaml
+
+def yaml_to_json(yaml_file_path, json_file_path):
+    # Read YAML file
+    with open(yaml_file_path, 'r') as yaml_file:
+        yaml_data = yaml.safe_load(yaml_file)
+
+    # Convert to JSON format
+    json_data = json.dumps(yaml_data, indent=4)
+
+    # Write to JSON file
+    with open(json_file_path, 'w') as json_file:
+        json_file.write(json_data)
+
+# Example usage
+yaml_file_path = './config/YAML/default.yaml'
+json_file_path = './config/config_file/hrnet.json.'
+yaml_to_json(yaml_file_path, json_file_path)
+
+
+

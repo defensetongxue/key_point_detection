@@ -252,7 +252,7 @@ class HighResolutionNet(nn.Module):
 
     def __init__(self, config, **kwargs):
         self.inplanes = 64
-        extra = config.MODEL.EXTRA
+        extra = config['model']['extra']
         super(HighResolutionNet, self).__init__()
 
         # stem net
@@ -309,7 +309,7 @@ class HighResolutionNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(
                 in_channels=final_inp_channels,
-                out_channels=config.MODEL.NUM_JOINTS,
+                out_channels=config['model']['num_joints'],
                 kernel_size=extra.FINAL_CONV_KERNEL,
                 stride=1,
                 padding=1 if extra.FINAL_CONV_KERNEL == 3 else 0)
@@ -370,12 +370,12 @@ class HighResolutionNet(nn.Module):
 
     def _make_stage(self, layer_config, num_inchannels,
                     multi_scale_output=True):
-        num_modules = layer_config['NUM_MODULES']
-        num_branches = layer_config['NUM_BRANCHES']
-        num_blocks = layer_config['NUM_BLOCKS']
-        num_channels = layer_config['NUM_CHANNELS']
-        block = blocks_dict[layer_config['BLOCK']]
-        fuse_method = layer_config['FUSE_METHOD']
+        num_modules = layer_config['num_modules']
+        num_branches = layer_config['num_branches']
+        num_blocks = layer_config['num_blocks']
+        num_channels = layer_config['num_channels']
+        block = blocks_dict[layer_config['block']]
+        fuse_method = layer_config['fuse_method']
 
         modules = []
         for i in range(num_modules):

@@ -1,6 +1,4 @@
-import argparse
-from .defaults import _C as configs
-from .defaults import update_config
+import argparse,json
 
 def get_config():
     parser = argparse.ArgumentParser()
@@ -25,11 +23,10 @@ def get_config():
 
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
-                        default="./config/YAML/default.yaml", type=str)
+                        default="./config/config_file/default.json", type=str)
     
     args = parser.parse_args()
     # Merge args and config file 
-    update_config(configs, args)
-    args.configs=configs
+    args.configs=json.load(args.cfg)
 
     return args
