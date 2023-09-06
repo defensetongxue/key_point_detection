@@ -399,6 +399,7 @@ class HighResolutionNet(nn.Module):
 
     def forward(self, x):
         # h, w = x.size(2), x.size(3)
+        print(x.shape)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -406,7 +407,8 @@ class HighResolutionNet(nn.Module):
         x = self.bn2(x)
         x = self.relu(x)
         x = self.layer1(x)
-
+        print(x.shape)
+        raise
         x_list = []
         for i in range(self.stage2_cfg['NUM_BRANCHES']):
             if self.transition1[i] is not None:
