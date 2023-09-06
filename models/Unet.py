@@ -36,7 +36,14 @@ class UNet(nn.Module):
         self.dec_conv3 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
 
         self.out_conv = nn.Conv2d(128, 1, kernel_size=1)
-
+        self.classifier = nn.Sequential(
+           nn.AdaptiveAvgPool2d((1, 1)),  # Pooling
+           nn.Flatten(),  # Flatten the tensor before fully connected layers
+           nn.Linear(1024, 512),  # Fully connected layer
+           nn.ReLU(inplace=True),  # Activation
+           nn.Dropout(0.5),  # Dropout for regularization
+           nn.Linear(512,config.num_classes),  # Fully connected layer for num_classes output
+        )
     def forward(self, x):
         # Encoder
         # x shape: [batch, in_channels, 256, 256]
@@ -73,7 +80,7 @@ class UNet(nn.Module):
 
         out = self.out_conv(dec3)  # [batch, 1, 128, 128]
         
-        return out
+        return out,self.classifier(pool4)
 class Loss_Unet():
     def __init__(self) -> None:
         self.location_loss=torch.nn.MSELoss()
