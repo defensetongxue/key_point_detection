@@ -7,7 +7,7 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
 
         # Encoder
-        self.enc_conv1 = nn.Conv2d(config.IN_CHANNELS, 16, kernel_size=3, padding=1)
+        self.enc_conv1 = nn.Conv2d(config['in_channel'], 16, kernel_size=3, padding=1)
         self.enc_conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         self.pool1 = nn.MaxPool2d(2)
 
@@ -91,8 +91,8 @@ class Loss_Unet():
 def Build_UNet(config):
     
     model = UNet(config)
-    pretrained = config.MODEL.PRETRAINED if config.MODEL.INIT_WEIGHTS else ''
-    model.init_weights(pretrained=pretrained)
+    # pretrained = config.MODEL.PRETRAINED if config.MODEL.INIT_WEIGHTS else ''
+    # model.init_weights(pretrained=pretrained)
 
     return model,Loss_Unet()
 if __name__ =="__main__":

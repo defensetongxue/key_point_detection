@@ -1,27 +1,7 @@
 import numpy as np
 import inspect
 from torch import optim
-
-def contour_to_bbox(file_name):
-    """
-    Reads a text file containing contour coordinates and returns a bounding box in xywh format.
-    :param file_name: str, the name of the text file
-    :return: tuple containing the coordinates of the top-left corner and the dimensions of the bounding box (x, y, width, height)
-    """
-    with open(file_name, 'r') as f:
-        lines = f.readlines()
-
-    contour_points = [tuple(map(float, line.strip().split(','))) for line in lines]
-
-    contour_array = np.array(contour_points)
-    x_min, y_min = np.min(contour_array, axis=0)
-    x_max, y_max = np.max(contour_array, axis=0)
-
-    x_center, y_center = (x_min+x_max)/2, (y_min+y_max)/2
-    width, height = x_max - x_min, y_max - y_min
-
-    return x_center, y_center, width, height
-
+from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
 def get_instance(module, class_name, *args, **kwargs):
     try:
         cls = getattr(module, class_name)
@@ -58,3 +38,21 @@ def get_optimizer(cfg, model):
     else:
         raise
     return optimizer
+def get_lr_scheduler(optimizer, cfg):
+    if cfg['method'] == 'reduce_plateau':
+        lr_scheduler = ReduceLROnPlateau(
+            optimizer,
+            mode='min',
+            patience=cfg['reduce_plateau_patience'],
+            factor=cfg['reduce_plateau_factor'],
+            cooldown=cfg['cooldown'],
+            verbose=False
+        )
+    elif cfg['method'] == 'cosine_annealing':
+        lr_scheduler = CosineAnnealingLR(optimizer, T_max=cfg['cosine_annealing_T_max'])
+    elif cfg['method'] == 'constant':
+        lr_scheduler = None  # No learning rate scheduling for constant LR
+    else:
+        raise ValueError("Invalid learning rate scheduling method")
+    
+    return lr_scheduler

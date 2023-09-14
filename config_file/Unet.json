@@ -1,0 +1,28 @@
+{
+    "num_works": 12,
+    "image_size": [
+        256,
+        256
+    ],
+    "model": {
+        "in_channels": 3,
+        "numm_joints": 1,
+        "init_weights": true,
+        "pretrained": ""
+    },
+    "train": {
+        "batch_size": 16,
+        "begin_epoch": 0,
+        "end_epoch": 500,
+        "early_stop": 30,
+        "optimizer": "adam",
+        "lr": 0.0001,
+        "wd": 0.0,
+        "lr_step": [
+            30,
+            50
+        ],
+        "momentum": 0.0,
+        "nesterov": false
+    }
+}

@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from config import get_config
-from utils_ import get_instance, train_epoch, val_epoch,get_optimizer
+from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,get_lr_scheduler
 from Datasets_ import CustomDatset
 import models
 import os
@@ -25,18 +25,8 @@ if os.path.isfile(args.from_checkpoint):
     torch.load(args.from_checkpoint))
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
+lr_scheduler=get_lr_scheduler(optimizer,args.configs['lr_strategy'])
 last_epoch = args.configs['train']['begin_epoch']
-if isinstance(args.configs['train']['lr_step'], list):
-    lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, args.configs['train']['lr_step'],
-        args.configs['train']['lr_factor'], last_epoch-1
-    )
-else:
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer, args.configs['train']['lr_step'],
-        args.configs['train']['lr_factor'], last_epoch-1
-    )
-
 # Load the datasets
 train_dataset = CustomDatset(args.path_tar,split="train")
 val_dataset = CustomDatset(args.path_tar,split="valid")
@@ -62,6 +52,13 @@ for epoch in range(last_epoch,total_epoches):
 
     val_loss = val_epoch(model, val_loader, criterion, device)
     print(f"Epoch {epoch + 1}/{total_epoches}, Val Loss: {val_loss}")
+    
+    # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
+    if lr_scheduler is not None:
+        if args.configs['lr_strategy']['method'] == 'reduce_plateau':
+            lr_scheduler.step(val_loss)
+        elif args.configs['lr_strategy']['method'] == 'cosine_annealing':
+            lr_scheduler.step()
 
     # Early stopping
     if val_loss < best_val_loss:
