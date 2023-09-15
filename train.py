@@ -18,7 +18,7 @@ os.makedirs(result_path,exist_ok=True)
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
-model, criterion = get_instance(models, args.model,args.configs)
+model, criterion = get_instance(models, args.model,args.configs['model'])
 if os.path.isfile(args.from_checkpoint):
     print(f"loadding the exit checkpoints {args.from_checkpoint}")
     model.load_state_dict(
@@ -28,12 +28,12 @@ optimizer = get_optimizer(args.configs, model)
 lr_scheduler=get_lr_scheduler(optimizer,args.configs['lr_strategy'])
 last_epoch = args.configs['train']['begin_epoch']
 # Load the datasets
-train_dataset = CustomDatset(args.path_tar,split="train")
-val_dataset = CustomDatset(args.path_tar,split="valid")
+train_dataset = CustomDatset(args.data_path,args.configs,split="train")
+val_dataset = CustomDatset(args.data_path,args.configs,split="val")
 # Create the data loaders
-train_loader = DataLoader(train_dataset, batch_size=args.configs['train']['batch_size'],
+train_loader = DataLoader(train_dataset, batch_size=args.configs['batch_size'],
                           shuffle=True, num_workers=16)
-val_loader = DataLoader(val_dataset, batch_size=args.configs['train']['batch_size'],
+val_loader = DataLoader(val_dataset, batch_size=args.configs['batch_size'],
                         shuffle=False, num_workers=16)
 
 # Set up the device
@@ -52,7 +52,7 @@ for epoch in range(last_epoch,total_epoches):
 
     val_loss = val_epoch(model, val_loader, criterion, device)
     print(f"Epoch {epoch + 1}/{total_epoches}, Val Loss: {val_loss}")
-    
+
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     if lr_scheduler is not None:
         if args.configs['lr_strategy']['method'] == 'reduce_plateau':

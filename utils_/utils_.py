@@ -3,6 +3,9 @@ import inspect
 from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
 def get_instance(module, class_name, *args, **kwargs):
+    cls = getattr(module, class_name)
+    instance = cls(*args, **kwargs)
+    return instance
     try:
         cls = getattr(module, class_name)
         instance = cls(*args, **kwargs)

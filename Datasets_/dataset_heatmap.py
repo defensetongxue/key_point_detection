@@ -1,31 +1,34 @@
 import numpy as np
-import os
+import os,json
 from torch.utils.data import Dataset
 from PIL import Image
-import json
-from torchvision import transforms
 from .transforms_kit import *
 class KeypointDetectionDatasetHeatmap(Dataset):
-    def __init__(self, data_path, split='train',heatmap_rate=0.25,sigma=1.5):
+    def __init__(self, data_path,configs ,split='train'):
         self.data_path = data_path
         if split=='train':
-            self.transform=KeypointDetectionTransformHeatmap(mode='train')
-        elif split=='valid' or split=='test':
-            self.transform=KeypointDetectionTransformHeatmap(mode='val')
+            self.transform=KeypointDetectionTransformHeatmap(mode='train',resize=configs['image_resize'])
+        elif split=='val' or split=='test':
+            self.transform=KeypointDetectionTransformHeatmap(mode='val',resize=configs['image_resize'])
         else:
             raise ValueError(
-                f"Invalid split: {split}, split should be one of train|valid|test")
+                f"Invalid split: {split}, split should be one of train|valitest")
 
         # Load annotations
-        self.annotations = json.load(open(os.path.join(data_path, 
-                                                       'annotations', f"{split}.json")))
-        self.heatmap_ratio=heatmap_rate
-        self.sigma=sigma
+        with open(os.path.join(os.path.join(data_path,'annotations.json')),'r') as f:
+            self.data_dict=json.load(f)
+        with open(os.path.join(data_path,'split',f'{configs["split_name"]}.json'),'r') as f:
+            self.split_list=json.load(f)[split]
+        self.distance_map={
+            "visible":0,"near":1,"far":2
+        }
+        self.heatmap_ratio=configs["heatmap_rate"]
+        self.sigma=configs["sigma"]
 
     def __len__(self):
-        return len(self.annotations)
+        return len(self.split_list)
     
-    def generate_target(self, img, pt, sigma, label_type='Gaussian', img_path=''):
+    def generate_target(self, img, pt, sigma, label_type='Gaussian'):
         # Check that any part of the Gaussian is in-bounds
         tmp_size = sigma * 3
         ul = [int(pt[0] - tmp_size), int(pt[1] - tmp_size)]
@@ -61,12 +64,12 @@ class KeypointDetectionDatasetHeatmap(Dataset):
 
     
     def __getitem__(self, idx):
-        data_name = self.split_list[idx]
-        data=self.data_list[data_name]
+        image_name = self.split_list[idx]
+        data=self.data_dict[image_name]
 
         img = Image.open(data['image_path']).convert('RGB')
         
-        
+        distance=data['optic_disc_gt']['distance']
         keypoints = torch.tensor(data['optic_disc_gt']['position'], dtype=torch.float32).view(-1, 2)
         keypoints = keypoints[:, :2].flatten()
         # keypoint in each image
@@ -76,25 +79,25 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         heatmap_height=int(img_height*self.heatmap_ratio)
         heatmap=np.zeros((heatmap_width,
                                    heatmap_height),dtype=np.float32)
-        heatmap=self.generate_target(heatmap,keypoints*self.heatmap_ratio,sigma=self.sigma,img_path=data["image_path"])
+        heatmap=self.generate_target(heatmap,keypoints*self.heatmap_ratio,sigma=self.sigma)
         # labels = create_heatmap_label(keypoints, image_width,image_height)
         heatmap=heatmap[np.newaxis,:]
-        return img, heatmap,data["image_path"]
+        return img, (heatmap.squeeze(),self.distance_map[distance]),data["image_path"]
         
 
 
 class KeypointDetectionTransformHeatmap:
     def __init__(self, mean=[0.4623, 0.3856, 0.2822],
                  std=[0.2527, 0.1889, 0.1334],
-                 size=(416, 416),
+                 resize=(416, 416),
                  mode='train'):
-        self.size = size
+        self.size = resize
         self.mode = mode
 
         if self.mode == 'train':
             self.transforms = transformsCompose([
                 ContrastEnhancement(factor=1.5),
-                Resize(size),
+                Resize(resize),
                 Fix_RandomRotation(),
                 RandomHorizontalFlip(),
                 RandomVerticalFlip(),
@@ -104,7 +107,7 @@ class KeypointDetectionTransformHeatmap:
         else:
             self.transforms = transformsCompose([
                 ContrastEnhancement(factor=1.5),
-                Resize(size),
+                Resize(resize),
                 ToTensor(),
                 Normalize(mean, std)
             ])

@@ -1,17 +1,18 @@
 {
     "num_works": 12,
-    "image_size": [
-        256,
-        256
-    ],
+    "batch_size":2,
+    "heatmap_rate":0.25,
+    "sigma":1.5,
+    "split_name":"mini",
+    "image_resize": [256,256],
     "model": {
         "in_channels": 3,
-        "numm_joints": 1,
-        "init_weights": true,
-        "pretrained": ""
+        "num_classes":3
+    },
+    "lr_strategy":{
+        "method":"constant"
     },
     "train": {
-        "batch_size": 16,
         "begin_epoch": 0,
         "end_epoch": 500,
         "early_stop": 30,
