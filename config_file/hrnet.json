@@ -1,14 +1,17 @@
 {
     "num_works": 12,
-    "heatmap_ratio":0.25,
-    "image_size": [
-        256,
-        256
-    ],
+    "batch_size":2,
+    "heatmap_rate":0.25,
+    "sigma":1.5,
+    "split_name":"mini",
+    "image_resize": [256,256],
     "model": {
-        "in_channels": 1,
+        "location_r":0.7,
+        "loss_func":"MSELoss",
+        "in_channels": 3,
         "name": "hrnet",
-        "numm_joints": 1,
+        "num_classes":3,
+        "num_joints": 1,
         "init_weights": true,
         "pretrained": "./models/pretrained/hrnetv2_w18_imagenet_pretrained.pth",
         "sigma": 1.5,
@@ -64,10 +67,12 @@
             }
         }
     },
+    "lr_strategy":{
+        "method":"constant"
+    },
     "train": {
-        "batch_size": 16,
         "begin_epoch": 0,
-        "end_epoch": 500,
+        "end_epoch": 1,
         "early_stop": 30,
         "optimizer": "adam",
         "lr": 0.0001,

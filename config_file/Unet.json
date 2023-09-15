@@ -6,15 +6,18 @@
     "split_name":"mini",
     "image_resize": [256,256],
     "model": {
+        "location_r":0.7,
+        "loss_func":"MSELoss",
         "in_channels": 3,
-        "num_classes":3
+        "num_classes":3,
+        "official_model_save":"./experiments"
     },
     "lr_strategy":{
         "method":"constant"
     },
     "train": {
         "begin_epoch": 0,
-        "end_epoch": 500,
+        "end_epoch": 1,
         "early_stop": 30,
         "optimizer": "adam",
         "lr": 0.0001,

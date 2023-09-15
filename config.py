@@ -6,7 +6,7 @@ def get_config():
     parser.add_argument('--data_path', type=str, default="../autodl-tmp/dataset_ROP",
                         help='Path to the source folder datasets.')
     # Model
-    parser.add_argument('--model', type=str, default='unet',
+    parser.add_argument('--model', type=str, default='hrnet',
                         help='Name of the model architecture to be used for training.')
     
     # train and test
@@ -19,7 +19,7 @@ def get_config():
 
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
-                        default="./config_file/Unet.json", type=str)
+                        default="./config_file/hrnet.json", type=str)
     
     args = parser.parse_args()
     # Merge args and config file 
