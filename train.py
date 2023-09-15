@@ -32,9 +32,9 @@ train_dataset = CustomDatset(args.data_path,args.configs,split="train")
 val_dataset = CustomDatset(args.data_path,args.configs,split="val")
 # Create the data loaders
 train_loader = DataLoader(train_dataset, batch_size=args.configs['batch_size'],
-                          shuffle=True, num_workers=16)
+                          shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset, batch_size=args.configs['batch_size'],
-                        shuffle=False, num_workers=16)
+                        shuffle=False, num_workers=args.configs['num_works'])
 
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
