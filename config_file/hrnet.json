@@ -13,7 +13,7 @@
         "num_classes":3,
         "num_joints": 1,
         "init_weights": true,
-        "pretrained": "./models/pretrained/hrnetv2_w18_imagenet_pretrained.pth",
+        "pretrained": ".",
         "sigma": 1.5,
         "extra": {
             "final_conv_kernel": 1,
