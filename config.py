@@ -10,7 +10,9 @@ def get_config():
                         help='Name of the model architecture to be used for training.')
     
     # train and test
-    parser.add_argument('--save_name', type=str, default="./checkpoints/Unet.pth",
+    parser.add_argument('--save_dir', type=str, default="./checkpoints",
+                        help='Name of the file to save the best model during training.')
+    parser.add_argument('--save_name', type=str, default="best.pth",
                         help='Name of the file to save the best model during training.')
     parser.add_argument('--result_path', type=str, default="experiments/visual",
                         help='Path to the visualize result or the pytorch model will be saved.')

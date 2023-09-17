@@ -17,7 +17,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         # Load annotations
         with open(os.path.join(os.path.join(data_path,'annotations.json')),'r') as f:
             self.data_dict=json.load(f)
-        with open(os.path.join(data_path,'split',f'{configs["split_name"]}.json'),'r') as f:
+        with open(os.path.join('./split',f'{configs["split_name"]}.json'),'r') as f:
             self.split_list=json.load(f)[split]
         self.distance_map={
             "visible":0,"near":1,"far":2
