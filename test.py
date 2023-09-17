@@ -1,12 +1,21 @@
 import os,json
 import torch
 from config import get_config
-from utils_ import decode_preds,visualize_and_save_landmarks,get_instance
+from utils_ import decode_preds,visualize_and_save_landmarks,get_instance,get_criteria
 import models
 from torchvision import transforms
-from Datasets_ import ContrastEnhancement
-from PIL import Image
+from PIL import Image,ImageEnhance
 import numpy as np
+
+class ContrastEnhancement:
+    def __init__(self, factor=1.5):
+        self.factor = factor
+
+    def __call__(self, img):
+        enhancer = ImageEnhance.Contrast(img)
+        img = enhancer.enhance(self.factor)
+        return img
+     
 # Parse arguments
 args = get_config()
 
@@ -39,12 +48,17 @@ with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
 with open(os.path.join('./split',f'{args.split_name}.json'),'r') as f:
     split_ilst=json.load(f)['test']
 distance_map={0:"visible",1:"near",2:"far"}
+distance2label={'visible':0,'near':1,'far':2}
 visual_dir = os.path.join(args.result_path, 'visual')
+all_preds = []
+all_distances = []
+all_position_gts = []
+all_distance_gts = []
 with torch.no_grad():
     # open the image and preprocess
     for image_name in split_ilst:
         data=data_dict[image_name]
-        img=Image.open(data[image_name]).convert('RGB')
+        img=Image.open(data['image_path']).convert('RGB')
         ori_w,ori_h=img.size
         w_ratio,h_ratio=ori_w/args.configs['image_resize'][0], ori_h/args.configs['image_resize'][1]
         img = transforms(img)
@@ -60,7 +74,17 @@ with torch.no_grad():
         distance=distance_map[int(distance)]
         visualize_and_save_landmarks(image_path=data['image_path'],
                                      image_resize=args.configs['image_resize'],
-                                     perds=preds,
+                                     preds=preds,
                                      save_path=os.path.join(visual_dir,image_name),
                                      text=distance)
 
+        positon_gt=data['optic_disc_gt']['position'] # x,y 
+        distance_gt=data['optic_disc_gt']['distance'] # 0,1,2
+        distance_gt=distance2label[distance_gt]
+        all_preds.append(preds)
+        all_distances.append(distance)
+        all_position_gts.append(np.array(positon_gt))  # make sure it's numpy array
+        all_distance_gts.append(distance_gt)
+criteria_values = get_criteria(all_preds, all_distances, all_position_gts, all_distance_gts)
+criteria_json = json.dumps(criteria_values, indent=4)  # Convert criteria dict to JSON string
+print(criteria_json)

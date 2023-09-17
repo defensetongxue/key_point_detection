@@ -5,6 +5,8 @@ def get_config():
     # cleansing
     parser.add_argument('--data_path', type=str, default="../autodl-tmp/dataset_ROP",
                         help='Path to the source folder datasets.')
+    parser.add_argument('--split_name', type=str, default="mini",
+                        help='Path to the source folder datasets.')
     # Model
     parser.add_argument('--model', type=str, default='hrnet',
                         help='Name of the model architecture to be used for training.')

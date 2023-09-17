@@ -107,7 +107,7 @@ class UNet(nn.Module):
 
 
 class Loss_Unet():
-    def __init__(self, locat_r=0.7,Loss_func="MSELoss"):
+    def __init__(self, locat_r=0.9,Loss_func="MSELoss"):
         self.r = locat_r
         # DiceLoss,FocalLoss
         self.location_loss = getattr(nn,Loss_func)()
@@ -116,8 +116,10 @@ class Loss_Unet():
     def __call__(self, ouputs, targets):
         out_heatmap, out_distance = ouputs
         gt_heatmap, gt_distance = targets
-        return self.r*self.class_loss(out_heatmap, gt_heatmap) + \
-            (1-self.r)*self.class_loss(out_distance, gt_distance)
+        location_loss=self.location_loss(out_heatmap, gt_heatmap)
+        class_loss=self.class_loss(out_distance, gt_distance)
+        return location_loss, class_loss, self.r* location_loss+ \
+            (1-self.r)* class_loss
 
 def Build_UNet(config):
 
