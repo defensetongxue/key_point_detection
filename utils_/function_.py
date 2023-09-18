@@ -22,7 +22,6 @@ def train_epoch(model, optimizer, train_loader, loss_function, device):
 
         # Assuming your model returns a tuple of outputs
         outputs = model(inputs)
-
         # Assuming your loss function can handle tuples of outputs and targets
         l_loss,c_loss,loss = loss_function(outputs, targets)
 
@@ -32,6 +31,7 @@ def train_epoch(model, optimizer, train_loader, loss_function, device):
         running_loss += loss.item()
         running_l_loss +=  l_loss.item()
         running_c_loss +=  c_loss.item()
+        # raise
     running_loss /= len(train_loader)
     running_l_loss /= len(train_loader)
     running_c_loss /= len(train_loader)

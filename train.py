@@ -35,7 +35,8 @@ train_loader = DataLoader(train_dataset, batch_size=args.configs['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset, batch_size=args.configs['batch_size'],
                         shuffle=False, num_workers=args.configs['num_works'])
-
+print("train data number: ",len(train_loader))
+print("val data number: ",len(val_loader))
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
@@ -59,14 +60,13 @@ for epoch in range(last_epoch,total_epoches):
             lr_scheduler.step(val_loss)
         elif args.configs['lr_strategy']['method'] == 'cosine_annealing':
             lr_scheduler.step()
-
     # Early stopping
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         early_stop_counter = 0
         torch.save(model.state_dict(),
-                   os.path.join(args.save_dir,f"{args.split_name}_{args.save_name}"))
-        print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.save_name}")))
+                   os.path.join(args.save_dir,f'{args.configs["split_name"]}_{args.save_name}'))
+        print("Model saved as {}".format(os.path.join(args.save_dir,f'{args.configs["split_name"]}_{args.save_name}')))
     else:
         early_stop_counter += 1
         if early_stop_counter >= args.configs['train']['early_stop']:

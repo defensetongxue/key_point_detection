@@ -1,17 +1,14 @@
 import torch
 import math
 import cv2
-
-def visualize_and_save_landmarks(image_path,image_resize, preds, save_path,text=None):
+def visualize_and_save_landmarks(image_path, preds, save_path,text=None):
     img = cv2.imread(image_path)
-    img=cv2.resize(img,image_resize)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # Ensure preds is a NumPy array with shape (98, 2)
     if isinstance(preds, torch.Tensor):
         preds = preds.squeeze(0).numpy()
 
     # Draw landmarks on the image
-    print(text)
     x, y = preds
     cv2.circle(img, (int(x), int(y)), 8, (255, 0, 0), -1)
     if text:
