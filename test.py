@@ -25,7 +25,7 @@ os.makedirs(result_path,exist_ok=True)
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
-model, criterion = get_instance(models, args.model,args.configs['model'])
+model, criterion = get_instance(models, args.configs['model']['name'],args.configs['model'])
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 model.load_state_dict(

@@ -6,6 +6,7 @@
     "split_name":"mini",
     "image_resize": [256,256],
     "model": {
+        "name":"unet",
         "location_r":0.7,
         "loss_func":"MSELoss",
         "in_channels": 3,
@@ -17,7 +18,7 @@
     },
     "train": {
         "begin_epoch": 0,
-        "end_epoch": 1,
+        "end_epoch": 500,
         "early_stop": 30,
         "optimizer": "adam",
         "lr": 0.0001,
