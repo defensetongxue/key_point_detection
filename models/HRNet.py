@@ -429,7 +429,7 @@ class HighResolutionNet(nn.Module):
             else:
                 x_list.append(y_list[i])
         x = self.stage4(x_list)
-        distance=self.classifier(x[2])
+        # distance=self.classifier(x[2])
         # Head Part
         height, width = x[0].size(2), x[0].size(3)
         x1 = F.interpolate(x[1], size=(height, width), mode='bilinear', align_corners=False)
@@ -438,7 +438,8 @@ class HighResolutionNet(nn.Module):
         x = torch.cat([x[0], x1, x2, x3], 1)
         x = self.head(x).squeeze()
         # x=self.Th(x)
-        return (x,distance)
+        # return (x,distance)
+        return (x,0)
 
     def init_weights(self, pretrained=''):
         logger.info('=> init weights from normal distribution')
@@ -476,7 +477,12 @@ class Loss_Unet():
         class_loss=self.class_loss(out_distance, gt_distance)
         return location_loss, class_loss, self.r* location_loss+ \
             (1-self.r)* class_loss
+    def __call__(self, ouputs, targets):
+        out_heatmap, out_distance = ouputs
+        gt_heatmap, gt_distance = targets
+        location_loss=self.location_loss(out_heatmap, gt_heatmap)
 
+        return location_loss,0,location_loss
 
 def Build_HRNet(config, **kwargs):
 

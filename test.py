@@ -66,13 +66,13 @@ with torch.no_grad():
         # generate predic heatmap with pretrained   model
         img = img.unsqueeze(0)  # as batch size 1
         position,distance = model(img.cuda())
-        score_map = position.data.cpu()
+        score_map = position.data.cpu()/100
         preds = decode_preds(score_map.unsqueeze(0))
         preds=preds.squeeze()
         preds=preds*np.array([w_ratio,h_ratio])
         print(preds)
-        distance=torch.argmax(distance, dim=1).squeeze()
-        distance=distance_map[int(distance)]
+        # distance=torch.argmax(distance, dim=1).squeeze()
+        # distance=distance_map[int(distance)]
         visualize_and_save_landmarks(image_path=data['image_path'],
                                      preds=preds,
                                      save_path=os.path.join(visual_dir,image_name),
@@ -82,7 +82,7 @@ with torch.no_grad():
         distance_gt=data['optic_disc_gt']['distance'] # 0,1,2
         distance_gt=distance2label[distance_gt]
         all_preds.append(preds)
-        all_distances.append(distance)
+        # all_distances.append(distance)
         all_position_gts.append(np.array(positon_gt))  # make sure it's numpy array
         all_distance_gts.append(distance_gt)
 # criteria_values = get_criteria(all_preds, all_distances, all_position_gts, all_distance_gts)

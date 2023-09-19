@@ -72,8 +72,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         img = Image.open(data['image_path']).convert('RGB')
         
         distance=data['optic_disc_gt']['distance']
-        keypoints = torch.tensor(data['optic_disc_gt']['position'], dtype=torch.float32).view(-1, 2)
-        keypoints = keypoints[:, :2].flatten()
+        keypoints = torch.tensor(data['optic_disc_gt']['position'], dtype=torch.float32)
         # keypoint in each image
         img, keypoints = self.transform(img, keypoints)
         img_width,img_height=img.shape[1],img.shape[2]

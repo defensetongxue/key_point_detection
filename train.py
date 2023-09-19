@@ -11,7 +11,7 @@ os.makedirs("experiments",exist_ok=True)
 
 # Parse arguments
 args = get_config()
-
+print(f"using config file {args.cfg}")
 # Init the result file to store the pytorch model and other mid-result
 result_path = args.result_path
 os.makedirs(result_path,exist_ok=True)

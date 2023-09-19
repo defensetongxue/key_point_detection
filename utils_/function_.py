@@ -34,15 +34,15 @@ def train_epoch(model, optimizer, train_loader, loss_function, device):
 
         running_loss += loss.item()
         running_l_loss +=  l_loss.item()
-        running_c_loss +=  c_loss.item()
+        # running_c_loss +=  c_loss.item()
         # raise
     running_loss /= len(train_loader)
     running_l_loss /= len(train_loader)
     running_c_loss /= len(train_loader)
 
-    running_c_loss=round(running_c_loss,4)
-    running_l_loss=round(running_l_loss,4)
-    running_loss=round(running_loss,4)
+    running_c_loss=round(running_c_loss,8)
+    running_l_loss=round(running_l_loss,8)
+    running_loss=round(running_loss,8)
     return running_l_loss,running_c_loss,running_loss
 def val_epoch(model, val_loader, loss_function, device,epoch):
     model.eval()
@@ -67,12 +67,12 @@ def val_epoch(model, val_loader, loss_function, device,epoch):
 
             running_loss += loss.item()
             running_l_loss +=  l_loss.item()
-            running_c_loss +=  c_loss.item()
+            # running_c_loss +=  c_loss.item()
         
     running_loss /= len(val_loader)
     running_l_loss /= len(val_loader)
     running_c_loss /= len(val_loader)
-    running_c_loss=round(running_c_loss,4)
-    running_l_loss=round(running_l_loss,4)
-    running_loss=round(running_loss,4)
+    running_c_loss=round(running_c_loss,8)
+    running_l_loss=round(running_l_loss,8)
+    running_loss=round(running_loss,8)
     return running_l_loss,running_c_loss,running_loss
