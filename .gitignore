@@ -6,3 +6,5 @@ checkpoints
 *.ipynb
 json_src
 temp.py
+*.out
+nohup.out

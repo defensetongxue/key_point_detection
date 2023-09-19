@@ -83,7 +83,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
                                    heatmap_height),dtype=np.float32)
         heatmap=self.generate_target(heatmap,keypoints*self.heatmap_ratio,sigma=self.sigma)
         # labels = create_heatmap_label(keypoints, image_width,image_height)
-        return img, (heatmap,self.distance_map[distance]),data["image_path"]
+        return img, (heatmap,self.distance_map[distance]),image_name
         
 
 
@@ -99,18 +99,18 @@ class KeypointDetectionTransformHeatmap:
             self.transforms = transformsCompose([
                 ContrastEnhancement(factor=1.5),
                 Resize(resize),
-                # Fix_RandomRotation(),
-                # RandomHorizontalFlip(),
-                # RandomVerticalFlip(),
+                Fix_RandomRotation(),
+                RandomHorizontalFlip(),
+                RandomVerticalFlip(),
                 ToTensor(),
-                # Normalize(mean, std)
+                Normalize(mean, std)
             ])
         else:
             self.transforms = transformsCompose([
                 ContrastEnhancement(factor=1.5),
                 Resize(resize),
                 ToTensor(),
-                # Normalize(mean, std)
+                Normalize(mean, std)
             ])
 
     def __call__(self, img, keypoints):

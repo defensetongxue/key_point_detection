@@ -51,7 +51,7 @@ for epoch in range(last_epoch,total_epoches):
     l_loss,c_loss,train_loss = train_epoch(model, optimizer, train_loader, criterion, device)
     print(f"Epoch {epoch + 1}/{total_epoches}, Train Loss: {train_loss}, Location Loss :{l_loss}, Class Loss: {c_loss}")
 
-    v_l_loss,v_c_loss,val_loss = val_epoch(model, val_loader, criterion, device)
+    v_l_loss,v_c_loss,val_loss = val_epoch(model, val_loader, criterion, device,epoch)
     print(f"Epoch {epoch + 1}/{total_epoches}, Val Loss: {val_loss}, Location Loss :{v_l_loss}, Class Loss: {v_c_loss}")
 
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
