@@ -76,15 +76,6 @@ class UNet(nn.Module):
         self.Th = torch.nn.Sigmoid()
         self.pred = torch.nn.Conv2d(64, 1, 3, 1, 1)
           # Replace your old classifier with a resnet18-like classifier
-        self.classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d((1, 1)),  # Pooling
-            nn.Flatten(),  # Flatten the tensor before fully connected layers
-            nn.Linear(512, 256),  # Fully connected layer
-            nn.ReLU(inplace=True),  # Activation
-            nn.Dropout(0.5),  # Dropout for regularization
-            # Fully connected layer for num_classes output
-            nn.Linear(256, configs['num_classes']),
-        )
 
     def forward(self, x):
         embed = self.C_embed(x)
@@ -101,32 +92,15 @@ class UNet(nn.Module):
         O4 = self.C9(self.U4(O3, R1))  # 64
 
         heatmap = self.Th(self.pred(O4)).squeeze()  # segment
-        distance = self.classifier(O1)
         
-        return (heatmap, distance)
-
-
-class Loss_Unet():
-    def __init__(self, locat_r=0.9,Loss_func="MSELoss"):
-        self.r = locat_r
-        # DiceLoss,FocalLoss
-        self.location_loss = getattr(nn,Loss_func)()
-        self.class_loss = nn.CrossEntropyLoss()
-
-    def __call__(self, ouputs, targets):
-        out_heatmap, out_distance = ouputs
-        gt_heatmap, gt_distance = targets
-        location_loss=self.location_loss(out_heatmap, gt_heatmap)
-        class_loss=self.class_loss(out_distance, gt_distance)
-        return location_loss, class_loss, self.r* location_loss+ \
-            (1-self.r)* class_loss
+        return heatmap
 
 def Build_UNet(config):
 
     model = UNet(config)
     # pretrained = config.MODEL.PRETRAINED if config.MODEL.INIT_WEIGHTS else ''
     # model.init_weights(pretrained=pretrained)
-    return model, Loss_Unet(locat_r=config["location_r"],Loss_func=config["loss_func"])
+    return model, getattr(nn,Loss_func=config["loss_func"])()
 
 
 if __name__ == "__main__":

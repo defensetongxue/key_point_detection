@@ -5,7 +5,7 @@ from PIL import Image,ImageEnhance
 from torchvision import transforms
 from torchvision.transforms import functional as F
 
-class KeypointDetectionDatasetHeatmap(Dataset):
+class PreClassDataset(Dataset):
     def __init__(self, data_path,configs ,split='train'):
         self.data_path = data_path
         self.split=split
@@ -18,7 +18,6 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         self.img_preprocess=transforms.Compose(
             [transforms.Resize(configs['image_resize']),
              ContrastEnhancement()])
-        self.heatmap_preprocess=transforms.Resize(configs['image_resize'])
         self.enhance = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomVerticalFlip(p=0.5),
@@ -29,7 +28,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
                 std=[0.2527, 0.1889, 0.1334])])
-        self.heatmap_transforms=transforms.ToTensor()
+        self.label_map={"visible":0,'near':1,'far':2}
 
     def __len__(self):
         return len(self.split_list)
@@ -39,20 +38,16 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         data=self.data_dict[image_name]
 
         img = Image.open(data['image_path']).convert('RGB')
-        heatmap=Image.open(data['optic_disc_gt']['heatmap_path'])
+        label=self.label_map(
+            data['optic_disc_gt']['distance']
+        )
         # preprocess
         img=self.img_preprocess(img)
-        heatmap=self.heatmap_preprocess(heatmap)
         if self.split=='train':
-            seed = torch.seed()
-            torch.manual_seed(seed)
             img=self.enhance(img)
-            torch.manual_seed(seed)
-            heatmap=self.enhance(heatmap)
 
         img=self.img_transforms(img)
-        heatmap=self.heatmap_transforms(heatmap)
-        return img, heatmap,image_name
+        return img, label,image_name
         
 class ContrastEnhancement:
     def __init__(self, factor=1.5):
