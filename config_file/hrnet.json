@@ -11,8 +11,6 @@
         "in_channels": 3,
         "name": "hrnet",
         "num_classes":3,
-        "num_joints": 1,
-        "init_weights": true,
         "pretrained": ".",
         "sigma": 1.5,
         "extra": {

@@ -1,2 +1,2 @@
 from .dataset_heatmap import KeypointDetectionDatasetHeatmap as CustomDatset
-from .transforms_kit import ContrastEnhancement
+from .dataset_preclass import PreClassDataset as ClassDataset
