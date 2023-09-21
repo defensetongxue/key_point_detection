@@ -467,4 +467,4 @@ def Build_HRNet(config, **kwargs):
     model = HighResolutionNet(config, **kwargs)
     # pretrained = config.MODEL.PRETRAINED if config.MODEL.INIT_WEIGHTS else ''
     # model.init_weights(pretrained=pretrained)
-    return model,getattr(nn,Loss_func=config["loss_func"])()
+    return model,getattr(nn,config["loss_func"])()
