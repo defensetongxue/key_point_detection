@@ -8,3 +8,6 @@ json_src
 temp.py
 *.out
 nohup.out
+cls_config
+todo_cls.sh
+ring.py

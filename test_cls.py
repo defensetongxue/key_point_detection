@@ -45,7 +45,7 @@ with torch.no_grad():
         outputs = model(inputs)
 
         # Calculate loss if necessary (not needed for accuracy and AUC)
-        l_loss, c_loss, loss = criterion(outputs, targets)
+        loss = criterion(outputs, targets)
 
         # Apply softmax to get probabilities
         probas = F.softmax(outputs, dim=1)
