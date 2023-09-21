@@ -38,9 +38,9 @@ class PreClassDataset(Dataset):
         data=self.data_dict[image_name]
 
         img = Image.open(data['image_path']).convert('RGB')
-        label=self.label_map(
+        label=self.label_map[
             data['optic_disc_gt']['distance']
-        )
+        ]
         # preprocess
         img=self.img_preprocess(img)
         if self.split=='train':
@@ -53,10 +53,10 @@ class ContrastEnhancement:
     def __init__(self, factor=1.5):
         self.factor = factor
 
-    def __call__(self, img, label):
+    def __call__(self, img):
         enhancer = ImageEnhance.Contrast(img)
         img = enhancer.enhance(self.factor)
-        return img, label
+        return img
 
 
 class Fix_RandomRotation(object):
