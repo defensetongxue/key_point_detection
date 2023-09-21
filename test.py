@@ -46,10 +46,9 @@ mytransforms = transforms.Compose([
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 with open(os.path.join('./split',f'{args.configs["split_name"]}.json'),'r') as f:
-    split_ilst=json.load(f)['train'][:10]
-distance_map={0:"visible",1:"near",2:"far"}
-distance2label={'visible':0,'near':1,'far':2}
-visual_dir = os.path.join(args.result_path, 'visual')
+    split_ilst=json.load(f)['test'][:20]
+os.makedirs(os.path.join(args.result_path, 'visual'),exist_ok=True)
+visual_dir = os.path.join(args.result_path, 'visual',args.configs["split_name"])
 os.makedirs(visual_dir,exist_ok=True)
 all_preds = []
 all_distances = []
@@ -65,26 +64,22 @@ with torch.no_grad():
         img = mytransforms(img)
         # generate predic heatmap with pretrained   model
         img = img.unsqueeze(0)  # as batch size 1
-        position,distance = model(img.cuda())
-        score_map = position.data.cpu()/100
-        preds = decode_preds(score_map.unsqueeze(0))
+        position = model(img.cuda())
+        score_map = position.data.cpu()
+        # print(score_map.shape)
+        preds = decode_preds(score_map)
         preds=preds.squeeze()
         preds=preds*np.array([w_ratio,h_ratio])
-        print(preds)
+        # print(preds)
         # distance=torch.argmax(distance, dim=1).squeeze()
         # distance=distance_map[int(distance)]
         visualize_and_save_landmarks(image_path=data['image_path'],
                                      preds=preds,
-                                     save_path=os.path.join(visual_dir,image_name),
-                                     text=distance)
+                                     save_path=os.path.join(visual_dir,image_name))
 
-        positon_gt=data['optic_disc_gt']['position'] # x,y 
-        distance_gt=data['optic_disc_gt']['distance'] # 0,1,2
-        distance_gt=distance2label[distance_gt]
-        all_preds.append(preds)
-        # all_distances.append(distance)
-        all_position_gts.append(np.array(positon_gt))  # make sure it's numpy array
-        all_distance_gts.append(distance_gt)
+        # positon_gt=data['optic_disc_gt']['position'] # x,y 
+        # all_preds.append(preds)
+        # all_position_gts.append(np.array(positon_gt))  # make sure it's numpy array
 # criteria_values = get_criteria(all_preds, all_distances, all_position_gts, all_distance_gts)
 # criteria_json = json.dumps(criteria_values, indent=4)  # Convert criteria dict to JSON string
 # print(criteria_json)

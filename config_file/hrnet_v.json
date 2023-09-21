@@ -3,9 +3,10 @@
     "batch_size":20,
     "heatmap_rate":0.25,
     "sigma":1.5,
-    "split_name":"1",
+    "split_name":"v_1",
     "image_resize": [512,512],
     "model": {
+        "heatmap_rate":0.25,
         "location_r":1.0,
         "loss_func":"MSELoss",
         "in_channels": 3,

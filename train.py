@@ -49,10 +49,8 @@ total_epoches=args.configs['train']['end_epoch']
 # Training and validation loop
 for epoch in range(last_epoch,total_epoches):
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device)
-    print(f"Epoch {epoch + 1}/{total_epoches}, Train Loss: {train_loss}")
-
     val_loss = val_epoch(model, val_loader, criterion, device,epoch)
-    print(f"Epoch {epoch + 1}/{total_epoches}, Val Loss: {val_loss}")
+    print(f"Epoch {epoch + 1}/{total_epoches}, Train Loss: {train_loss}, Val Loss: {val_loss}")
 
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     if lr_scheduler is not None:

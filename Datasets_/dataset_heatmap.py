@@ -15,10 +15,13 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         with open(os.path.join('./split',f'{configs["split_name"]}.json'),'r') as f:
             self.split_list=json.load(f)[split]
         print(f'using split {configs["split_name"]}.json for  {split}')
+        heatmap_resize=[int(i*configs['heatmap_rate']) for i in configs['image_resize']]
+        assert configs['image_resize'][0]*configs['heatmap_rate']%1==0
+        assert configs['image_resize'][1]*configs['heatmap_rate']%1==0
         self.img_preprocess=transforms.Compose(
             [transforms.Resize(configs['image_resize']),
              ContrastEnhancement()])
-        self.heatmap_preprocess=transforms.Resize(configs['image_resize'])
+        self.heatmap_preprocess=transforms.Resize(heatmap_resize)
         self.enhance = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomVerticalFlip(p=0.5),
@@ -51,7 +54,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
             heatmap=self.enhance(heatmap)
 
         img=self.img_transforms(img)
-        heatmap=self.heatmap_transforms(heatmap)
+        heatmap=self.heatmap_transforms(heatmap).squeeze()
         return img, heatmap,image_name
         
 class ContrastEnhancement:
