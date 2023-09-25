@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from config import get_config
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import accuracy_score, roc_auc_score,confusion_matrix
 import torch.nn.functional as F
 import numpy as np
 from Datasets_ import ClassDataset
@@ -35,6 +35,7 @@ print("train data number: ",len(test_loader))
 # List to store the true labels and the model's predictions
 all_targets = []
 all_outputs = []
+# ... other parts of the code ...
 
 # Testing loop
 with torch.no_grad():
@@ -43,24 +44,51 @@ with torch.no_grad():
         targets = targets.to(device)
 
         outputs = model(inputs)
-
-        # Calculate loss if necessary (not needed for accuracy and AUC)
-        loss = criterion(outputs, targets)
-
+        
         # Apply softmax to get probabilities
         probas = F.softmax(outputs, dim=1)
         
-        # Store the true labels and the predictions
+        # Get the index of the max probability, which represents the predicted label
+        _, predicted = torch.max(probas, 1)
+        
+        # Convert tensor to list for processing
+        targets_list = targets.cpu().numpy().tolist()
+        predicted_list = predicted.cpu().numpy().tolist()
+        meta_list = list(meta)  # assuming meta is a tuple, convert it to a list
+
+        # Iterate over the batch and print the incorrect predictions
+        for i in range(len(targets_list)):
+            true_label = targets_list[i]
+            predicted_label = predicted_list[i]
+            
+            # If the prediction is wrong, print the image_name, true label, and predicted label
+            if true_label != predicted_label:
+                print(f"{meta_list[i]} {true_label} {predicted_label}")
+
+        # Store the true labels and the predictions for further analysis
         all_targets.append(targets.cpu().numpy())
         all_outputs.append(probas.cpu().numpy())
 
+
 # Concatenate the results from each batch
-all_targets = np.concatenate(all_targets)
+predicted_labels = np.concatenate([np.argmax(probas, axis=1) for probas in all_outputs])
 all_outputs = np.concatenate(all_outputs)
+true_labels = np.concatenate(all_targets)
+
+# Calculate the confusion matrix
+cm = confusion_matrix(true_labels, predicted_labels)
+
+# Print the confusion matrix
+print("Confusion Matrix:")
+print(cm)
+
+# If you want to print in "label i, pred j" format:
+print("\nDetailed View:")
+for i in range(cm.shape[0]):
+    for j in range(cm.shape[1]):
+        print(f"label {i}, pred {j}: {cm[i, j]}")
+
 
 # Calculate the accuracy and AUC
-acc = accuracy_score(all_targets, np.argmax(all_outputs, axis=1))
-auc = roc_auc_score(all_targets, all_outputs, multi_class='ovo')
-
-print(f"Accuracy: {acc:.2f}")
-print(f"AUC: {auc:.2f}")
+acc = accuracy_score(true_labels, np.argmax(all_outputs, axis=1))
+auc = roc_auc_score(true_labels, all_outputs, multi_class='ovo')

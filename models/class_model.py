@@ -1,7 +1,7 @@
 from torchvision import models
 import os
 import torch.nn as nn
-
+import torch
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters())
 
@@ -48,7 +48,9 @@ def build_class_model(model_name, model_configs):
     }
     
     try:
-        return builders[model_name](model_configs),nn.CrossEntropyLoss()
+        return builders[model_name](model_configs),nn.CrossEntropyLoss(
+            weight=torch.tensor([model_configs['loss_weight'],1.0,1.0])
+        )
     except KeyError:
         raise ValueError(f"Invalid model name: {model_name}. Available options are: {list(builders.keys())}")
 

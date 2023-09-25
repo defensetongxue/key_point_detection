@@ -19,6 +19,7 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
 model, criterion = cls_models(args.configs['model']['name'],args.configs['model'])
+
 if os.path.isfile(args.from_checkpoint):
     print(f"loadding the exit checkpoints {args.from_checkpoint}")
     model.load_state_dict(
@@ -40,6 +41,7 @@ print("val data number: ",len(val_loader))
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
+criterion=criterion.to(device)
 print(f"using {device} for training")
 # Set up the optimizer, loss function, and early stopping
 
