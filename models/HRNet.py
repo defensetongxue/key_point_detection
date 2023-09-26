@@ -443,9 +443,7 @@ class HighResolutionNet(nn.Module):
         logger.info('=> init weights from normal distribution')
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                # nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
                 nn.init.normal_(m.weight, std=0.001)
-                # nn.init.constant_(m.bias, 0)
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
@@ -455,16 +453,18 @@ class HighResolutionNet(nn.Module):
             model_dict = self.state_dict()
             pretrained_dict = {k: v for k, v in pretrained_dict.items()
                                if k in model_dict.keys()}
-            # for k, _ in pretrained_dict.items():
-            #     print(
-            #         '=> loading {} pretrained model {}'.format(k, pretrained))
+            for k, _ in pretrained_dict.items():
+                logger.info(
+                    '=> loading {} pretrained model {}'.format(k, pretrained))
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
+
             
 
 def Build_HRNet(config, **kwargs):
 
     model = HighResolutionNet(config, **kwargs)
-    # pretrained = config.MODEL.PRETRAINED if config.MODEL.INIT_WEIGHTS else ''
-    # model.init_weights(pretrained=pretrained)
+    
+    pretrained = config['model']['pretrained']
+    model.init_weights(pretrained=pretrained)
     return model,getattr(nn,config["loss_func"])()
