@@ -15,7 +15,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         with open(os.path.join('./split',f'{configs["split_name"]}.json'),'r') as f:
             self.split_list=json.load(f)[split]
         if split != 'test':
-            self.split_list=self.select_image(configs['empty_r'])
+            self.select_image(configs['empty_r'])
         print(f'using split {configs["split_name"]}.json for  {split}')
         heatmap_resize=[int(i*configs['heatmap_rate']) for i in configs['image_resize']]
         assert configs['image_resize'][0]*configs['heatmap_rate']%1==0
@@ -69,9 +69,8 @@ class KeypointDetectionDatasetHeatmap(Dataset):
 
         img=self.img_transforms(img)
         heatmap=self.heatmap_transforms(heatmap).squeeze()
-        if data['optic_disc_gt']['distance']!='visble':
+        if data['optic_disc_gt']['distance']!='visible':
             heatmap=torch.zeros_like(heatmap)
-            0
         return img, heatmap,image_name
         
 class ContrastEnhancement:

@@ -308,14 +308,6 @@ class HighResolutionNet(nn.Module):
                 padding=1 if extra["final_conv_kernel"] == 3 else 0)
         )
         self.Th = torch.nn.Sigmoid()
-        # self.classifier = nn.Sequential(
-        #     nn.AdaptiveAvgPool2d((1, 1)),  # Pooling
-        #     nn.Flatten(),  # Flatten the tensor before fully connected layers
-        #     nn.Linear(72, 36),  # Fully connected layer
-        #     nn.ReLU(inplace=True),  # Activation
-        #     nn.Dropout(0.5),  # Dropout for regularization
-        #     nn.Linear(36, configs['num_classes']),  # Fully connected layer
-        # )
 
     def _make_transition_layer(
             self, num_channels_pre_layer, num_channels_cur_layer):
@@ -440,7 +432,7 @@ class HighResolutionNet(nn.Module):
         return x
 
     def init_weights(self, pretrained=''):
-        logger.info('=> init weights from normal distribution')
+        print('HRNet:  init weights from normal distribution')
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.normal_(m.weight, std=0.001)
@@ -449,22 +441,21 @@ class HighResolutionNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
         if os.path.isfile(pretrained):
             pretrained_dict = torch.load(pretrained)
-            logger.info('=> loading pretrained model {}'.format(pretrained))
+            print('HRNet:  loading pretrained model {}'.format(pretrained))
             model_dict = self.state_dict()
             pretrained_dict = {k: v for k, v in pretrained_dict.items()
                                if k in model_dict.keys()}
             for k, _ in pretrained_dict.items():
-                logger.info(
-                    '=> loading {} pretrained model {}'.format(k, pretrained))
+                 print('HRNet: loading {} pretrained model {}'.format(k, pretrained))
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
 
             
 
-def Build_HRNet(config, **kwargs):
+def Build_HRNet(config,split='train', **kwargs):
 
     model = HighResolutionNet(config, **kwargs)
-    
-    pretrained = config['model']['pretrained']
-    model.init_weights(pretrained=pretrained)
+    if split=='train':
+        pretrained = config['pretrained']
+        model.init_weights(pretrained=pretrained)
     return model,getattr(nn,config["loss_func"])()
