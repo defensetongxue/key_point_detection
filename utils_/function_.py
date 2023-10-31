@@ -52,8 +52,6 @@ def val_epoch(model, val_loader, loss_function, device,epoch):
     running_loss /= len(val_loader)
     running_loss=round(running_loss,8)
     return running_loss
-import numpy as np
-
 def find_nearest_zero(mask, point):
     h, w = mask.shape
     cx, cy = w // 2, h // 2  # center of the image
@@ -74,4 +72,4 @@ def find_nearest_zero(mask, point):
         x += direction[0]
         y += direction[1]
 
-    return None
+    return (x,y)
