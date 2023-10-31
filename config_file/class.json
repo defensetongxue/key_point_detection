@@ -10,7 +10,7 @@
         "in_channels": 3,
         "name": "resnet50",
         "official_model_save":"./experiments",
-        "num_classes":3
+        "num_classes":2
     },
     "lr_strategy":{
         "method":"constant",

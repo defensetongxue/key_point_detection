@@ -52,3 +52,26 @@ def val_epoch(model, val_loader, loss_function, device,epoch):
     running_loss /= len(val_loader)
     running_loss=round(running_loss,8)
     return running_loss
+import numpy as np
+
+def find_nearest_zero(mask, point):
+    h, w = mask.shape
+    cx, cy = w // 2, h // 2  # center of the image
+    x, y = point
+
+    if mask[y, x] == 0:
+        return point
+
+    # Get the direction vector for stepping along the line
+    direction = np.array([x - cx, y - cy])
+    direction = direction / np.linalg.norm(direction)
+
+    # Step along the line until we hit a zero in the mask
+    while 0 <= x < w and 0 <= y < h:
+        if mask[int(y), int(x)] == 0:
+            return (int(x), int(y))
+        
+        x += direction[0]
+        y += direction[1]
+
+    return None

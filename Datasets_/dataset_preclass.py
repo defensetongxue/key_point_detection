@@ -28,7 +28,7 @@ class PreClassDataset(Dataset):
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
                 std=[0.2527, 0.1889, 0.1334])])
-        self.label_map={"visible":0,'near':1,'far':2}
+        self.label_map={"visible":0,'near':0,'far':1}
 
     def __len__(self):
         return len(self.split_list)
