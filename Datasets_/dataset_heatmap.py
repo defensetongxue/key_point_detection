@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 from PIL import Image,ImageEnhance
 from torchvision import transforms
 from torchvision.transforms import functional as F
-
+from random import random
 class KeypointDetectionDatasetHeatmap(Dataset):
     def __init__(self, data_path,configs ,split='train'):
         self.data_path = data_path
@@ -14,13 +14,14 @@ class KeypointDetectionDatasetHeatmap(Dataset):
             self.data_dict=json.load(f)
         with open(os.path.join('./split',f'{configs["split_name"]}.json'),'r') as f:
             self.split_list=json.load(f)[split]
+        if split != 'test':
+            self.select_image(configs['empty_r'])
         print(f'using split {configs["split_name"]}.json for  {split}')
         heatmap_resize=[int(i*configs['heatmap_rate']) for i in configs['image_resize']]
         assert configs['image_resize'][0]*configs['heatmap_rate']%1==0
         assert configs['image_resize'][1]*configs['heatmap_rate']%1==0
         self.img_preprocess=transforms.Compose(
-            [transforms.Resize(configs['image_resize']),
-             ContrastEnhancement()])
+            [transforms.Resize(configs['image_resize'])])
         self.heatmap_preprocess=transforms.Resize(heatmap_resize)
         self.enhance = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
@@ -37,11 +38,23 @@ class KeypointDetectionDatasetHeatmap(Dataset):
     def __len__(self):
         return len(self.split_list)
     
+    def select_image(self, empty_r):
+        tar_split=[]
+        for image_name in self.split_list:
+            data=self.data_dict[image_name]['optic_disc_gt']
+            if data['distance']=='visible':
+                tar_split.append(image_name)
+            else:
+                if random()<=empty_r:
+                    tar_split.append(image_name)
+        self.split_list=tar_split
+
     def __getitem__(self, idx):
         image_name = self.split_list[idx]
         data=self.data_dict[image_name]
 
-        img = Image.open(data['image_path']).convert('RGB')
+        img = Image.open(data['enhanced_path']).convert('RGB')
+        
         heatmap=Image.open(data['optic_disc_gt']['heatmap_path'])
         # preprocess
         img=self.img_preprocess(img)
@@ -55,16 +68,10 @@ class KeypointDetectionDatasetHeatmap(Dataset):
 
         img=self.img_transforms(img)
         heatmap=self.heatmap_transforms(heatmap).squeeze()
+        if data['optic_disc_gt']['distance']!='visible':
+            # heatmap=torch.zeros_like(heatmap)
+            heatmap=heatmap/5
         return img, heatmap,image_name
-        
-class ContrastEnhancement:
-    def __init__(self, factor=1.5):
-        self.factor = factor
-
-    def __call__(self, img):
-        enhancer = ImageEnhance.Contrast(img)
-        img = enhancer.enhance(self.factor)
-        return img
 
 
 class Fix_RandomRotation(object):
@@ -104,3 +111,10 @@ class Fix_RandomRotation(object):
         return format_string
 
 
+
+class CropPadding:
+    def __init__(self,box=(80, 0, 1570, 1200)):
+        self.box=box
+    def __call__(self,img) :
+        return img.crop(self.box)
+    

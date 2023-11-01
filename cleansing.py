@@ -48,7 +48,6 @@ def generate_optic_disc_gt(data_path,sigma,heatmap_ratio,mask_path):
 def generate_optic_disc_heatmap(optic_disc_gt,heatmap_ratio,sigma,mask,save_path):
     # build empty heatmap
     heatmap=np.zeros_like(mask)
-    # decompose optic_disc object
     heatmap_punish=1.0
     pt=[i*heatmap_ratio for i in optic_disc_gt['position']]
     if optic_disc_gt['distance']=='far':
@@ -93,7 +92,7 @@ def generate_optic_disc_heatmap(optic_disc_gt,heatmap_ratio,sigma,mask,save_path
 if __name__ =="__main__":
     from config import get_config
     args = get_config()
-    # generate_optic_disc_split(args.data_path,args.configs["split_name"])
+    generate_optic_disc_split(args.data_path,args.configs["split_name"])
     generate_optic_disc_gt(args.data_path,
                            sigma=args.configs['sigma'],
                            heatmap_ratio=args.configs['heatmap_rate'],
