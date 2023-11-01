@@ -93,7 +93,7 @@ def generate_optic_disc_heatmap(optic_disc_gt,heatmap_ratio,sigma,mask,save_path
 if __name__ =="__main__":
     from config import get_config
     args = get_config()
-    # generate_optic_disc_split(args.data_path,args.configs["split_name"])
+    generate_optic_disc_split(args.data_path,args.configs["split_name"])
     generate_optic_disc_gt(args.data_path,
                            sigma=args.configs['sigma'],
                            heatmap_ratio=args.configs['heatmap_rate'],
