@@ -21,8 +21,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         assert configs['image_resize'][0]*configs['heatmap_rate']%1==0
         assert configs['image_resize'][1]*configs['heatmap_rate']%1==0
         self.img_preprocess=transforms.Compose(
-            [transforms.Resize(configs['image_resize']),
-             ContrastEnhancement()])
+            [transforms.Resize(configs['image_resize'])])
         self.heatmap_preprocess=transforms.Resize(heatmap_resize)
         self.enhance = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
@@ -70,18 +69,9 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         img=self.img_transforms(img)
         heatmap=self.heatmap_transforms(heatmap).squeeze()
         if data['optic_disc_gt']['distance']!='visible':
-            heatmap=torch.zeros_like(heatmap)
+            # heatmap=torch.zeros_like(heatmap)
             heatmap=heatmap/5
         return img, heatmap,image_name
-        
-class ContrastEnhancement:
-    def __init__(self, factor=1.5):
-        self.factor = factor
-
-    def __call__(self, img):
-        enhancer = ImageEnhance.Contrast(img)
-        img = enhancer.enhance(self.factor)
-        return img
 
 
 class Fix_RandomRotation(object):
@@ -121,3 +111,10 @@ class Fix_RandomRotation(object):
         return format_string
 
 
+
+class CropPadding:
+    def __init__(self,box=(80, 0, 1570, 1200)):
+        self.box=box
+    def __call__(self,img) :
+        return img.crop(self.box)
+    
