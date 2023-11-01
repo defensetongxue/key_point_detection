@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from config import get_config
-from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,get_lr_scheduler
+from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,lr_sche
 from Datasets_ import CustomDatset
 import models
 import os
@@ -25,14 +25,14 @@ if os.path.isfile(args.from_checkpoint):
     torch.load(args.from_checkpoint))
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
-lr_scheduler=get_lr_scheduler(optimizer,args.configs['lr_strategy'])
+lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 # Load the datasets
 train_dataset = CustomDatset(args.data_path,args.configs,split="train")
 val_dataset = CustomDatset(args.data_path,args.configs,split="val")
 # Create the data loaders
 train_loader = DataLoader(train_dataset, batch_size=args.configs['batch_size'],
-                          shuffle=True, num_workers=args.configs['num_works'])
+                          shuffle=True, num_workers=args.configs['num_works'],drop_last=True)
 val_loader = DataLoader(val_dataset, batch_size=args.configs['batch_size'],
                         shuffle=False, num_workers=args.configs['num_works'])
 print("train data number: ",len(train_loader))
@@ -48,17 +48,12 @@ best_val_loss = float('inf')
 total_epoches=args.configs['train']['end_epoch']
 # Training and validation loop
 for epoch in range(last_epoch,total_epoches):
-    current_lr = optimizer.param_groups[0]['lr']
-    train_loss = train_epoch(model, optimizer, train_loader, criterion, device)
+    train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
     val_loss = val_epoch(model, val_loader, criterion, device,epoch)
-    print(f"Epoch {epoch + 1}/{total_epoches}, Train Loss: {train_loss}, Val Loss: {val_loss} Learning Rate: {current_lr}")
+    
+    current_lr = optimizer.param_groups[0]['lr']
+    print(f"Epoch {epoch + 1}/{total_epoches}, Train Loss: {train_loss}, Val Loss: {val_loss} Learning Rate: {round(current_lr,7)}")
 
-    # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
-    if lr_scheduler is not None:
-        if args.configs['lr_strategy']['method'] == 'reduce_plateau':
-            lr_scheduler.step(val_loss)
-        elif args.configs['lr_strategy']['method'] == 'cosine_annealing':
-            lr_scheduler.step()
     # Early stopping
     if val_loss < best_val_loss:
         best_val_loss = val_loss

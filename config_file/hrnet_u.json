@@ -79,11 +79,10 @@
         }
     },
     "lr_strategy":{
-        "method":"constant",
-        "reduce_plateau_patience":8,
-        "reduce_plateau_factor":0.25,
-        "cooldown":5,
-        "cosine_annealing_T_max":10
+        "warmup_epochs":20,
+        "lr":1e-3,
+        "min_lr":1e-6,
+        "epochs":200
     },
     "train": {
         "begin_epoch": 0,

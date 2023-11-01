@@ -10,12 +10,13 @@ def to_device(x, device):
         return [to_device(xi,device) for xi in x]
     else:
         return x.to(device)
-
-def train_epoch(model, optimizer, train_loader, loss_function, device):
+def train_epoch(model, optimizer, train_loader, loss_function, device,lr_scheduler,epoch):
     model.train()
     running_loss = 0.0
-    for inputs, targets, meta in train_loader:
+    batch_length=len(train_loader)
+    for data_iter_step,(inputs, targets, meta) in enumerate(train_loader):
         # Moving inputs and targets to the correct device
+        lr_scheduler.adjust_learning_rate(optimizer,epoch+(data_iter_step/batch_length))
         inputs = to_device(inputs, device)
         targets = to_device(targets, device)
 
@@ -23,7 +24,7 @@ def train_epoch(model, optimizer, train_loader, loss_function, device):
 
         # Assuming your model returns a tuple of outputs
         outputs = model(inputs)
-        
+
         # Assuming your loss function can handle tuples of outputs and targets
         loss = loss_function(outputs, targets)
 
@@ -31,11 +32,8 @@ def train_epoch(model, optimizer, train_loader, loss_function, device):
         optimizer.step()
 
         running_loss += loss.item()
-        # raise
-    running_loss /= len(train_loader)
-
-    running_loss=round(running_loss,8)
-    return running_loss
+    
+    return running_loss / len(train_loader)
 def val_epoch(model, val_loader, loss_function, device,epoch):
     model.eval()
     running_loss = 0.0
@@ -73,3 +71,22 @@ def find_nearest_zero(mask, point):
         y += direction[1]
 
     return (x,y)
+class lr_sche():
+    def __init__(self,config):
+        self.warmup_epochs=config["warmup_epochs"]
+        self.lr=config["lr"]
+        self.min_lr=config["min_lr"]
+        self.epochs=config['epochs']
+    def adjust_learning_rate(self,optimizer, epoch):
+        """Decay the learning rate with half-cycle cosine after warmup"""
+        if epoch < self.warmup_epochs:
+            lr = self.lr * epoch / self.warmup_epochs
+        else:
+            lr = self.min_lr + (self.lr  - self.min_lr) * 0.5 * \
+                (1. + math.cos(math.pi * (epoch - self.warmup_epochs) / (self.epochs - self.warmup_epochs)))
+        for param_group in optimizer.param_groups:
+            if "lr_scale" in param_group:
+                param_group["lr"] = lr * param_group["lr_scale"]
+            else:
+                param_group["lr"] = lr
+        return lr
