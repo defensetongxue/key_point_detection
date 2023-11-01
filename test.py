@@ -6,6 +6,7 @@ import models
 from torchvision import transforms
 from PIL import Image,ImageEnhance
 import numpy as np
+from shutil import copy
 import torch.nn.functional as F
 class ContrastEnhancement:
     def __init__(self, factor=1.5):
@@ -51,13 +52,15 @@ with open(os.path.join('./split',f'{args.configs["split_name"]}.json'),'r') as f
 os.makedirs(os.path.join(args.result_path, 'visual'),exist_ok=True)
 visual_dir = os.path.join(args.result_path, 'visual',args.configs["split_name"])
 os.makedirs(visual_dir,exist_ok=True)
+os.makedirs(os.path.join(visual_dir,'visual'),exist_ok=True)
+os.makedirs(os.path.join(visual_dir,'unvisual'),exist_ok=True)
 visual_list=[]
 un_v=[]
 with torch.no_grad():
     # open the image and preprocess
     for image_name in split_ilst:
         data=data_dict[image_name]
-        img=Image.open(data['image_path']).convert('RGB')
+        img=Image.open(data['enhanced_path']).convert('RGB')
         ori_w,ori_h=img.size
         w_ratio,h_ratio=ori_w/args.configs['image_resize'][0], ori_h/args.configs['image_resize'][1]
         img = mytransforms(img)
@@ -68,17 +71,22 @@ with torch.no_grad():
         preds = decode_preds(score_map)
         preds=preds.squeeze()
         preds=preds*np.array([w_ratio,h_ratio])
-        visualize_and_save_landmarks(image_path=data['image_path'],
-                                     preds=preds,
-                                     save_path=os.path.join(visual_dir,image_name))
         max_val=torch.max(score_map)
         max_val=float(max_val)
         max_val=round(max_val,5)
 
         if data['optic_disc_gt']['distance']=='visible':
             visual_list.append(max_val)
+            if max_val<0.15:
+                visualize_and_save_landmarks(image_path=data['image_path'],
+                                     preds=preds,
+                                     save_path=os.path.join(visual_dir,'visual',image_name))
         else:
             un_v.append(max_val)
+            if max_val>=0.15:
+                visualize_and_save_landmarks(image_path=data['image_path'],
+                                     preds=preds,
+                                     save_path=os.path.join(visual_dir,'unvisual',image_name))
 visual_list=sorted(visual_list)
 un_v=sorted(un_v)
 print(visual_list[:10])

@@ -17,7 +17,7 @@ def get_config():
 
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
-                        default="./config_file/hrnet.json", type=str)
+                        default="./config_file/hrnet_v.json", type=str)
     
     args = parser.parse_args()
     # Merge args and config file 

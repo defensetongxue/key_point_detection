@@ -4,17 +4,16 @@
     "heatmap_rate":0.25,
     "sigma":5,
     "split_name":"1",
+     "empty_r":0.0,
     "image_resize": [256,256],
-    "empty_r":0.0,
     "model": {
         "heatmap_rate":0.25,
         "location_r":1.0,
         "loss_func":"MSELoss",
         "in_channels": 3,
         "name": "hrnet",
-        "num_classes":3,
-        "pretrained": "./pretrained/hrnetv2_w18_imagenet_pretrained.pth",
-        "sigma": 5,
+        "pretrained": "./pretrained/hrnet.pth",
+        "sigma": 1.5,
         "extra": {
             "final_conv_kernel": 1,
             "stage1": {
@@ -80,8 +79,8 @@
         }
     },
     "lr_strategy":{
-        "method":"reduce_plateau",
-        "reduce_plateau_patience":15,
+        "method":"constant",
+        "reduce_plateau_patience":8,
         "reduce_plateau_factor":0.25,
         "cooldown":5,
         "cosine_annealing_T_max":10
