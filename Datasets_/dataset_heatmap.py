@@ -54,7 +54,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         image_name = self.split_list[idx]
         data=self.data_dict[image_name]
 
-        img = Image.open(data['image_path']).convert('RGB')
+        img = Image.open(data['enhanced_path']).convert('RGB')
         
         heatmap=Image.open(data['optic_disc_gt']['heatmap_path'])
         # preprocess
@@ -71,6 +71,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         heatmap=self.heatmap_transforms(heatmap).squeeze()
         if data['optic_disc_gt']['distance']!='visible':
             heatmap=torch.zeros_like(heatmap)
+            heatmap=heatmap/5
         return img, heatmap,image_name
         
 class ContrastEnhancement:
