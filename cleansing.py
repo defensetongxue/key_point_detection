@@ -6,7 +6,7 @@ def generate_optic_disc_split(data_path,split_name):
     os.makedirs('./split',exist_ok=True)
     with open(os.path.join(data_path,'annotations.json'),'r') as f:
         data_dict=json.load(f)
-    with open(os.path.join(data_path,'split',f'{split_name}.json'),'r') as f:
+    with open(os.path.join(data_path,'split',f'{split_name[-1]}.json'),'r') as f:
         split_orignal=json.load(f)
     optic_disc_split={'train':[],'val':[],'test':[]}
     for split in ['train','val','test']:
@@ -37,7 +37,7 @@ def generate_optic_disc_gt(data_path,sigma,heatmap_ratio,mask_path):
         data=data_dict[image_name]
         if 'optic_disc_gt' in data:
             optic_disc_heatmap_path=os.path.join(data_path,'optic_disc_heatmap',data['id']+'.png')
-            data_dict[image_name]['optic_disc_gt']['heatmap_path']=generate_optic_disc_heatmap(
+            data_dict[image_name]['optic_disc_heatmap_path']=generate_optic_disc_heatmap(
                 optic_disc_gt= data['optic_disc_gt'],
                 heatmap_ratio=heatmap_ratio,
                 sigma=sigma,

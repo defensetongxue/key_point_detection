@@ -55,7 +55,7 @@ class KeypointDetectionDatasetHeatmap(Dataset):
 
         img = Image.open(data['enhanced_path']).convert('RGB')
         
-        heatmap=Image.open(data['optic_disc_gt']['heatmap_path'])
+        heatmap=Image.open(data['optic_disc_heatmap_path'])
         # preprocess
         img=self.img_preprocess(img)
         heatmap=self.heatmap_preprocess(heatmap)
@@ -68,9 +68,9 @@ class KeypointDetectionDatasetHeatmap(Dataset):
 
         img=self.img_transforms(img)
         heatmap=self.heatmap_transforms(heatmap).squeeze()
-        if data['optic_disc_gt']['distance']!='visible':
-            # heatmap=torch.zeros_like(heatmap)
-            heatmap=heatmap/5
+        # if data['optic_disc_gt']['distance']!='visible':
+        #     # heatmap=torch.zeros_like(heatmap)
+        #     heatmap=heatmap
         return img, heatmap,image_name
 
 
