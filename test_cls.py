@@ -24,7 +24,7 @@ print(f"using {device} for training")
 model, criterion = cls_models(args.configs['model']['name'],args.configs['model'])
 model = model.to(device)
 model.load_state_dict(
-    torch.load(os.path.join(args.save_dir,f'{args.configs["split_name"]}_{args.save_name}')))
+    torch.load(os.path.join(args.save_dir,f'{args.split_name}_{args.save_name}')))
 model.eval()
 # Load the datasets
 test_dataset = ClassDataset(args.data_path,args.configs,split="test")

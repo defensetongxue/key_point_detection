@@ -5,18 +5,20 @@ from PIL import Image,ImageEnhance
 from torchvision import transforms
 from torchvision.transforms import functional as F
 from random import random
+IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 class KeypointDetectionDatasetHeatmap(Dataset):
-    def __init__(self, data_path,configs ,split='train'):
+    def __init__(self, data_path,configs,split_name='1' ,split='train',part_empty=False):
         self.data_path = data_path
         self.split=split
         # Load annotations
         with open(os.path.join(os.path.join(data_path,'annotations.json')),'r') as f:
             self.data_dict=json.load(f)
-        with open(os.path.join('./split',f'{configs["split_name"]}.json'),'r') as f:
+        with open(os.path.join('./split',f'{split_name}.json'),'r') as f:
             self.split_list=json.load(f)[split]
-        if split != 'test':
+        if split != 'test' and part_empty:
             self.select_image(configs['empty_r'])
-        print(f'using split {configs["split_name"]}.json for  {split}')
+        print(f'using split {split_name}.json for  {split}')
         heatmap_resize=[int(i*configs['heatmap_rate']) for i in configs['image_resize']]
         assert configs['image_resize'][0]*configs['heatmap_rate']%1==0
         assert configs['image_resize'][1]*configs['heatmap_rate']%1==0
@@ -31,8 +33,8 @@ class KeypointDetectionDatasetHeatmap(Dataset):
         self.img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
-                mean=[0.4623, 0.3856, 0.2822],
-                std=[0.2527, 0.1889, 0.1334])])
+                mean=IMAGENET_DEFAULT_MEAN,
+                std=IMAGENET_DEFAULT_STD)])
         self.heatmap_transforms=transforms.ToTensor()
 
     def __len__(self):
@@ -68,9 +70,6 @@ class KeypointDetectionDatasetHeatmap(Dataset):
 
         img=self.img_transforms(img)
         heatmap=self.heatmap_transforms(heatmap).squeeze()
-        # if data['optic_disc_gt']['distance']!='visible':
-        #     # heatmap=torch.zeros_like(heatmap)
-        #     heatmap=heatmap
         return img, heatmap,image_name
 
 
@@ -109,12 +108,3 @@ class Fix_RandomRotation(object):
             format_string += ', center={0}'.format(self.center)
         format_string += ')'
         return format_string
-
-
-
-class CropPadding:
-    def __init__(self,box=(80, 0, 1570, 1200)):
-        self.box=box
-    def __call__(self,img) :
-        return img.crop(self.box)
-    

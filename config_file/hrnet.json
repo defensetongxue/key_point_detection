@@ -4,7 +4,7 @@
     "heatmap_rate":0.25,
     "sigma":5,
     "split_name":"1",
-     "empty_r":0.0,
+    "empty_r":0.0,
     "image_resize": [256,256],
     "model": {
         "heatmap_rate":0.25,

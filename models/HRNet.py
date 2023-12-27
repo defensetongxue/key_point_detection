@@ -429,6 +429,7 @@ class HighResolutionNet(nn.Module):
         x3 = F.interpolate(x[3], size=(height, width), mode='bilinear', align_corners=False)
         x = torch.cat([x[0], x1, x2, x3], 1)
         x = self.head(x).squeeze(1)
+        x= torch.sigmoid(x)
         return x
 
     def init_weights(self, pretrained=''):

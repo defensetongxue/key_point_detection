@@ -54,7 +54,8 @@ def find_nearest_zero(mask, point):
     h, w = mask.shape
     cx, cy = w // 2, h // 2  # center of the image
     x, y = point
-
+    y=max(0,min(1199,y))
+    x=max(0,min(1599,x))
     if mask[y, x] == 0:
         return point
 

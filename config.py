@@ -5,6 +5,8 @@ def get_config():
     # cleansing
     parser.add_argument('--data_path', type=str, default="../autodl-tmp/dataset_ROP",
                         help='Path to the source folder datasets.')
+    parser.add_argument('--split_name', type=str, default="1",
+                        help='Path to the source folder datasets.')
     # train and test
     parser.add_argument('--save_dir', type=str, default="./checkpoints",
                         help='Name of the file to save the best model during training.')
@@ -17,7 +19,7 @@ def get_config():
 
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
-                        default="./config_file/hrnet_v.json", type=str)
+                        default="./config_file/hrnet.json", type=str)
     
     args = parser.parse_args()
     # Merge args and config file 

@@ -29,8 +29,8 @@ model, criterion = get_instance(models, args.configs['model']['name'],args.confi
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 model.load_state_dict(
-    torch.load(os.path.join(args.save_dir,f'{args.configs["split_name"]}_{args.save_name}')))
-print("load the checkpoint in {}".format(os.path.join(args.save_dir,f'{args.configs["split_name"]}_{args.save_name}')))
+    torch.load(os.path.join(args.save_dir,f'{args.split_name}_{args.save_name}')))
+print("load the checkpoint in {}".format(os.path.join(args.save_dir,f'{args.split_name}_{args.save_name}')))
 model.eval()
 # Create the dataset and data loader
 
@@ -45,46 +45,46 @@ mytransforms = transforms.Compose([
         ])
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
-with open(os.path.join('./split',f'{args.configs["split_name"]}.json'),'r') as f:
-    split_ilst=json.load(f)['test']
-os.makedirs(os.path.join(args.result_path, 'visual'),exist_ok=True)
-visual_dir = os.path.join(args.result_path, 'visual',args.configs["split_name"])
+with open(os.path.join('./split',f'{args.split_name}.json'),'r') as f:
+    split_list=json.load(f)['test']
+os.makedirs(os.path.join(args.result_path,'visual'),exist_ok=True)
+visual_dir = os.path.join(args.result_path,'visual',args.split_name)
 os.makedirs(visual_dir,exist_ok=True)
 visual_list=[]
 un_v=[]
-mask=Image.open('./mask.png').convert('L')
-mask=np.array(mask)
-mask[mask>0]=1
-print("mask shape:", mask.shape)
+mask_resize=transforms.Compose([
+    transforms.Resize((64,64)),
+    transforms.ToTensor()])
+
+mask_rough=Image.open('./mask.png').convert('L')
+mask_rough=np.array(mask_rough)
+mask_rough[mask_rough>0]=1
 with torch.no_grad():
     # open the image and preprocess
-    for image_name in split_ilst:
+    for image_name in split_list:
         data=data_dict[image_name]
+        if data['optic_disc_gt']['distance']=='visible':
+            continue
         img=Image.open(data['image_path']).convert('RGB')
+        mask=Image.open(data['mask_path']).convert('L')
+        mask=mask_resize(mask)
+        mask[mask>0]=1
         ori_w,ori_h=img.size
         w_ratio,h_ratio=ori_w/args.configs['image_resize'][0], ori_h/args.configs['image_resize'][1]
         img = mytransforms(img)
         img = img.unsqueeze(0)  # as batch size 1
         position = model(img.cuda())
         score_map = position.data.cpu()
+        score_map = score_map*mask
         # print(score_map.shape)
         preds = decode_preds(score_map)
         preds=preds.squeeze().numpy()
         preds=preds*np.array([w_ratio,h_ratio])
         
-        preds=find_nearest_zero(mask,preds.astype(int))
+        preds=find_nearest_zero(mask_rough,preds.astype(int))
         visualize_and_save_landmarks(image_path=data['image_path'],
                                      preds=preds,
                                      save_path=os.path.join(visual_dir,image_name))
         max_val=torch.max(score_map)
         max_val=float(max_val)
         max_val=round(max_val,5)
-
-        if data['optic_disc_gt']['distance']=='visible':
-            visual_list.append(max_val)
-        else:
-            un_v.append(max_val)
-visual_list=sorted(visual_list)
-un_v=sorted(un_v)
-print(visual_list[:10])
-print(un_v[-10:])

@@ -28,8 +28,8 @@ optimizer = get_optimizer(args.configs, model)
 lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 # Load the datasets
-train_dataset = CustomDatset(args.data_path,args.configs,split="train")
-val_dataset = CustomDatset(args.data_path,args.configs,split="val")
+train_dataset = CustomDatset(args.data_path,args.configs,split_name=args.split_name,split="train")
+val_dataset = CustomDatset(args.data_path,args.configs,split_name=args.split_name,split="val")
 # Create the data loaders
 train_loader = DataLoader(train_dataset, batch_size=args.configs['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'],drop_last=True)
@@ -59,8 +59,8 @@ for epoch in range(last_epoch,total_epoches):
         best_val_loss = val_loss
         early_stop_counter = 0
         torch.save(model.state_dict(),
-                   os.path.join(args.save_dir,f'{args.configs["split_name"]}_{args.save_name}'))
-        print("Model saved as {}".format(os.path.join(args.save_dir,f'{args.configs["split_name"]}_{args.save_name}')))
+                   os.path.join(args.save_dir,f'{args.split_name}_{args.save_name}'))
+        print("Model saved as {}".format(os.path.join(args.save_dir,f'{args.split_name}_{args.save_name}')))
     else:
         early_stop_counter += 1
         if early_stop_counter >= args.configs['train']['early_stop']:
