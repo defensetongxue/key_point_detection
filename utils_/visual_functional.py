@@ -12,8 +12,8 @@ def visualize_and_save_landmarks(image_path, preds, save_path,text=None):
     x, y = preds
     cv2.circle(img, (int(x), int(y)), 8, (255, 0, 0), -1)
     if text:
-        cv2.putText(img,str(text),(20, 20),
-        fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=1,color=(255, 0, 0),thickness=4)
+        cv2.putText(img,str(text),(40, 40),
+        fontFace=cv2.FONT_HERSHEY_SIMPLEX,fontScale=2,color=(255, 0, 0),thickness=4)
     # Save the image with landmarks
     cv2.imwrite(save_path, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
     

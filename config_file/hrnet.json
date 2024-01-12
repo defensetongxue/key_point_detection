@@ -86,7 +86,7 @@
     },
     "train": {
         "begin_epoch": 0,
-        "end_epoch": 500,
+        "end_epoch": 200,
         "early_stop": 30,
         "optimizer": "adam",
         "lr": 1e-3,
