@@ -16,6 +16,8 @@ def get_config():
                         help='Path to the visualize result or the pytorch model will be saved.')
     parser.add_argument('--from_checkpoint', type=str, default="",
                         help='load the exit checkpoint.')
+    parser.add_argument('--threshold', type=float, default=0.2,
+                        help='load the exit checkpoint.')
 
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',

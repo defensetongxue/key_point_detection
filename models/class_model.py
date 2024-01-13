@@ -48,9 +48,7 @@ def build_class_model(model_name, model_configs):
     }
     
     try:
-        return builders[model_name](model_configs),nn.CrossEntropyLoss(
-            weight=torch.tensor([model_configs['loss_weight'],1.0,1.0])
-        )
+        return builders[model_name](model_configs),nn.CrossEntropyLoss()
     except KeyError:
         raise ValueError(f"Invalid model name: {model_name}. Available options are: {list(builders.keys())}")
 

@@ -33,7 +33,9 @@ def train_epoch(model, optimizer, train_loader, loss_function, device,lr_schedul
 
         running_loss += loss.item()
     
-    return running_loss / len(train_loader)
+    running_loss /= len(train_loader)
+    running_loss=round(running_loss,5)
+    return running_loss
 def val_epoch(model, val_loader, loss_function, device,epoch):
     model.eval()
     running_loss = 0.0
@@ -48,7 +50,7 @@ def val_epoch(model, val_loader, loss_function, device,epoch):
             running_loss += loss.item()
         
     running_loss /= len(val_loader)
-    running_loss=round(running_loss,8)
+    running_loss=round(running_loss,5)
     return running_loss
 def find_nearest_zero(mask, point):
     h, w = mask.shape

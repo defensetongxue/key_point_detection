@@ -6,15 +6,15 @@ from torchvision import transforms
 from torchvision.transforms import functional as F
 
 class PreClassDataset(Dataset):
-    def __init__(self, data_path,configs ,split='train'):
+    def __init__(self, data_path,configs,split_name ,split='train'):
         self.data_path = data_path
         self.split=split
         # Load annotations
         with open(os.path.join(os.path.join(data_path,'annotations.json')),'r') as f:
             self.data_dict=json.load(f)
-        with open(os.path.join('./split',f'{configs["split_name"]}.json'),'r') as f:
+        with open(os.path.join('./split',f'{split_name}.json'),'r') as f:
             self.split_list=json.load(f)[split]
-        print(f'using split {configs["split_name"]}.json for  {split}')
+        print(f'using split {split_name}.json for  {split}')
         self.img_preprocess=transforms.Compose(
             [transforms.Resize(configs['image_resize']),
              ContrastEnhancement()])
@@ -47,6 +47,7 @@ class PreClassDataset(Dataset):
             img=self.enhance(img)
 
         img=self.img_transforms(img)
+        assert label<2
         return img, label,image_name
         
 class ContrastEnhancement:
