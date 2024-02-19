@@ -75,7 +75,8 @@ with torch.no_grad():
         max_val=float(max_val)
         max_val=round(max_val,5)
 
-        if data['optic_disc_gt']['distance']=='visible':
+        # if data['optic_disc_gt']['distance']=='visible':
+        if False:
             visual_list.append(max_val)
             visualize_and_save_landmarks(image_path=data['image_path'],
                                      preds=preds,

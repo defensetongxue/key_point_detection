@@ -112,6 +112,7 @@ with torch.no_grad():
             
         data_dict[image_name]['optic_disc_pred']={
             'position':[int(x),int(y)],
+            "visible_confidnce":max_val,
             'distance':distance}
 with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
 # with open('./annotations.json','w') as f:
