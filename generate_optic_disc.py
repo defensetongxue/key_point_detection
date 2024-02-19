@@ -55,7 +55,7 @@ distance_map={
 }
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
-with open(os.path.join('./split',f'{args.split_name}.json'),'r') as f:
+with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
     split_list=json.load(f)['test']
     
 mask_resize=transforms.Compose([
@@ -65,6 +65,7 @@ cnt=0
 with torch.no_grad():
     # open the image and preprocess
     for image_name in split_list:
+        cnt+=1
         data=data_dict[image_name]
         img=Image.open(data['enhanced_path']).convert('RGB')
         mask=Image.open(data['mask_path']).convert('L')
@@ -114,6 +115,7 @@ with torch.no_grad():
             'position':[int(x),int(y)],
             "visible_confidnce":max_val,
             'distance':distance}
+print(f"finish process {str(cnt)} images")
 with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
 # with open('./annotations.json','w') as f:
     json.dump(data_dict,f)
