@@ -52,14 +52,17 @@ mask_resize=transforms.Compose([
     transforms.Resize((64,64)),
     transforms.ToTensor()])
 cnt=0
+test_list=['4605.jpg']
 with torch.no_grad():
     # open the image and preprocess
-    for image_name in split_list:
+    # for image_name in split_list:
+    for image_name in test_list:
         data=data_dict[image_name]
         img=Image.open(data['enhanced_path']).convert('RGB')
         mask=Image.open(data['mask_path']).convert('L')
         mask=mask_resize(mask)
         mask[mask>0]=1
+        
         ori_w,ori_h=img.size
         w_ratio,h_ratio=ori_w/args.configs['image_resize'][0], ori_h/args.configs['image_resize'][1]
         img = mytransforms(img)
@@ -75,6 +78,7 @@ with torch.no_grad():
         max_val=float(max_val)
         max_val=round(max_val,5)
         # if data['optic_disc_gt']['distance']=='visible':
+        print(preds)
         if False:
             visual_list.append(max_val)
             visualize_and_save_landmarks(image_path=data['image_path'],
@@ -87,7 +91,8 @@ with torch.no_grad():
             # if max_val>=0.15:
             visualize_and_save_landmarks(image_path=data['image_path'],
                                      preds=preds,
-                                     save_path=os.path.join(visual_dir,'unvisual',image_name),
+                                    #  save_path=os.path.join(visual_dir,image_name),
+                                     save_path=os.path.join(visual_dir,image_name),
                                      text=max_val)
 print(cnt)
 visual_list=sorted(visual_list)

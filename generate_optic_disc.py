@@ -13,7 +13,6 @@ IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 # Parse arguments
 args = get_config()
 
-print("load the checkpoint in {}".format(os.path.join(args.save_dir,f'{args.split_name}_{args.save_name}')))
 model_v, _ = get_instance(models, args.configs['model']['name'],args.configs['model'],split='test')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model_v=model_v.to(device)
