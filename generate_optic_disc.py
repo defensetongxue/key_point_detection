@@ -116,5 +116,4 @@ with torch.no_grad():
             'distance':distance}
 print(f"finish process {str(cnt)} images")
 with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
-# with open('./annotations.json','w') as f:
     json.dump(data_dict,f)

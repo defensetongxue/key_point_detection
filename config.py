@@ -9,13 +9,13 @@ def get_config():
                         help='Path to the source folder datasets.')
     # train and test
     parser.add_argument('--save_dir', type=str, default="./checkpoints",
-                        help='Name of the file to save the best model during training.')
+                        help='dictionary path to save the best model during training.')
     parser.add_argument('--save_name', type=str, default="optic_disc.pth",
                         help='Name of the file to save the best model during training.')
     parser.add_argument('--result_path', type=str, default="experiments",
                         help='Path to the visualize result or the pytorch model will be saved.')
     parser.add_argument('--from_checkpoint', type=str, default="",
-                        help='load the exit checkpoint.')
+                        help='if load the pretrained model, or other saved model')
     parser.add_argument('--threshold', type=float, default=0.2,
                         help='load the exit checkpoint.')
 
